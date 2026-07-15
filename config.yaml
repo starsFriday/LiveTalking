@@ -30,6 +30,11 @@ minicpmo_model_path: 'models/MiniCPM-o-4_5'
 minicpmo_system_prompt: '你是一个自然、友好的语音助手，请简洁、完整地回答用户。'
 minicpmo_input_chunk_ms: 1000
 minicpmo_max_response_seconds: 120
+minicpmo_barge_in_enabled: true
+minicpmo_barge_in_threshold_db: -34
+minicpmo_barge_in_trigger_ms: 280
+minicpmo_barge_in_cooldown_ms: 1500
+minicpmo_barge_in_start_guard_ms: 400
 
 # -------- Transport ----------------------------------------------------------
 transport: webrtc              # rtcpush / webrtc / rtmp / virtualcam

@@ -95,6 +95,16 @@ def parse_args():
                         help="microphone PCM duration per input.append")
     parser.add_argument('--minicpmo_max_response_seconds', type=float, default=120.0,
                         help="hard-reset a runaway continuous model response after this many seconds")
+    parser.add_argument('--minicpmo_barge_in_enabled', action=argparse.BooleanOptionalAction, default=True,
+                        help="force MiniCPM back to listening when the user speaks over a response")
+    parser.add_argument('--minicpmo_barge_in_threshold_db', type=float, default=-34.0,
+                        help="microphone RMS threshold in dBFS used by voice barge-in")
+    parser.add_argument('--minicpmo_barge_in_trigger_ms', type=int, default=280,
+                        help="required sustained user voice duration before barge-in")
+    parser.add_argument('--minicpmo_barge_in_cooldown_ms', type=int, default=1500,
+                        help="minimum interval between two voice barge-ins")
+    parser.add_argument('--minicpmo_barge_in_start_guard_ms', type=int, default=400,
+                        help="ignore microphone energy briefly after model speech starts")
 
     # ─── 传输 ─────────────────────────────────────────────────────────
     parser.add_argument('--transport', type=str, default='webrtc',

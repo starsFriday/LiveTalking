@@ -25,6 +25,7 @@ class MiniCPMRealtimeClient:
         self.reader_task: Optional[asyncio.Task] = None
         self.ready = asyncio.Event()
         self.closed = asyncio.Event()
+        self._send_lock = asyncio.Lock()
 
     async def connect(self) -> None:
         self.websocket = await websockets.connect(
@@ -52,22 +53,31 @@ class MiniCPMRealtimeClient:
         }
         if video_frame_base64:
             input_payload["video_frames"] = [video_frame_base64]
-        await self.websocket.send(json.dumps({
-            "type": "input.append",
-            "input": input_payload,
-        }))
+        async with self._send_lock:
+            if self.websocket is None:
+                raise RuntimeError("MiniCPM websocket is not connected")
+            await self.websocket.send(json.dumps({
+                "type": "input.append",
+                "input": input_payload,
+            }))
 
-    async def force_listen(self) -> None:
+    async def force_listen(self) -> bool:
+        """End the current speaking turn without rebuilding the duplex session."""
         if self.websocket is None or not self.ready.is_set():
-            return
+            return False
         silence = np.zeros(16000, dtype="<f4")
-        await self.websocket.send(json.dumps({
-            "type": "input.append",
-            "input": {
-                "audio": base64.b64encode(silence.tobytes()).decode("ascii"),
-                "force_listen": True,
-            },
-        }))
+        async with self._send_lock:
+            if self.websocket is None or not self.ready.is_set():
+                return False
+            await self.websocket.send(json.dumps({
+                "type": "input.append",
+                "input": {
+                    "audio": base64.b64encode(silence.tobytes()).decode("ascii"),
+                    "force_listen": True,
+                    "max_slice_nums": 1,
+                },
+            }))
+        return True
 
     async def close(self) -> None:
         ws = self.websocket

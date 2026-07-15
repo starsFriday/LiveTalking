@@ -1500,6 +1500,7 @@ function connectMiniCPMEvents(sid) {
         else if (msg.type === 'queued') setMiniCPMStatus(`排队中 #${msg.position || '-'}`);
         else if (msg.type === 'ready' || msg.type === 'listening') setMiniCPMStatus('正在聆听');
         else if (msg.type === 'speaking') setMiniCPMStatus('正在说话');
+        else if (msg.type === 'barge_in') setMiniCPMStatus('已打断，正在聆听');
         else if (msg.type === 'resetting') setMiniCPMStatus('正在自动恢复', msg.message);
         else if (msg.type === 'text') setMiniCPMStatus('正在说话', msg.text);
         else if (msg.type === 'error') setMiniCPMStatus('错误', msg.message || 'Joyfox-FullDuplex 服务异常');

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import math
+import time
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -31,6 +33,11 @@ class _Session:
     active_response_id: Optional[str] = None
     response_audio_seconds: float = 0.0
     response_text_window: str = ""
+    model_speaking: bool = False
+    speaking_started_at: float = 0.0
+    barge_in_voice_ms: float = 0.0
+    barge_in_pending: bool = False
+    last_barge_in_at: float = 0.0
 
     def __post_init__(self) -> None:
         self.output_bridge = StreamingAudioBridge(self.avatar_session.put_audio_frame)
@@ -58,6 +65,8 @@ class MiniCPMManager:
         session = self.sessions.get(sessionid)
         if session is None:
             return
+        audio_16k = np.asarray(audio_16k, dtype=np.float32).reshape(-1)
+        await self._maybe_barge_in(session, audio_16k)
         session.input_buffer.write(audio_16k)
         while session.input_buffer.size >= session.input_chunk_samples:
             chunk = session.input_buffer.read(session.input_chunk_samples)
@@ -71,6 +80,70 @@ class MiniCPMManager:
         session = self.sessions.get(sessionid)
         if session:
             await self._restart_session(session, "interrupted")
+
+    async def _maybe_barge_in(self, session: _Session, audio_16k: np.ndarray) -> None:
+        """Force the duplex model back to listening after sustained user speech."""
+        if not bool(getattr(self.opt, "minicpmo_barge_in_enabled", True)):
+            return
+        if not session.model_speaking or session.barge_in_pending or not audio_16k.size:
+            session.barge_in_voice_ms = 0.0
+            return
+
+        now = time.monotonic()
+        start_guard_ms = max(
+            0.0, float(getattr(self.opt, "minicpmo_barge_in_start_guard_ms", 400.0))
+        )
+        if (now - session.speaking_started_at) * 1000.0 < start_guard_ms:
+            session.barge_in_voice_ms = 0.0
+            return
+
+        cooldown_ms = max(
+            0.0, float(getattr(self.opt, "minicpmo_barge_in_cooldown_ms", 1500.0))
+        )
+        if (now - session.last_barge_in_at) * 1000.0 < cooldown_ms:
+            session.barge_in_voice_ms = 0.0
+            return
+
+        rms = float(np.sqrt(np.mean(np.square(audio_16k, dtype=np.float64))))
+        level_db = 20.0 * math.log10(max(rms, 1e-7))
+        threshold_db = float(getattr(self.opt, "minicpmo_barge_in_threshold_db", -34.0))
+        duration_ms = audio_16k.size * 1000.0 / 16000.0
+        if level_db >= threshold_db:
+            session.barge_in_voice_ms += duration_ms
+        else:
+            # Preserve short gaps between syllables, but quickly forget noise spikes.
+            session.barge_in_voice_ms = max(0.0, session.barge_in_voice_ms - duration_ms * 2.0)
+
+        trigger_ms = max(
+            60.0, float(getattr(self.opt, "minicpmo_barge_in_trigger_ms", 280.0))
+        )
+        if session.barge_in_voice_ms < trigger_ms:
+            return
+
+        session.barge_in_pending = True
+        session.last_barge_in_at = now
+        session.barge_in_voice_ms = 0.0
+        session.model_speaking = False
+        session.output_bridge.reset()
+        session.avatar_session.flush_talk()
+        logger.info(
+            "[MiniCPM] voice barge-in for %s: level=%.1f dBFS, trigger=%.0f ms",
+            session.sessionid,
+            level_db,
+            trigger_ms,
+        )
+
+        try:
+            sent = bool(session.client and await session.client.force_listen())
+        except Exception:
+            session.barge_in_pending = False
+            logger.exception("[MiniCPM] force-listen failed for %s", session.sessionid)
+            return
+        if not sent:
+            session.barge_in_pending = False
+            logger.warning("[MiniCPM] force-listen skipped for unready session %s", session.sessionid)
+            return
+        await self._broadcast(session, {"type": "barge_in"})
 
     def update_video_frame(self, sessionid: str, jpeg_base64: str) -> None:
         session = self.sessions.get(sessionid)
@@ -178,6 +251,10 @@ class MiniCPMManager:
         session.active_response_id = None
         session.response_audio_seconds = 0.0
         session.response_text_window = ""
+        session.model_speaking = False
+        session.speaking_started_at = 0.0
+        session.barge_in_voice_ms = 0.0
+        session.barge_in_pending = False
 
         old_worker = session.worker_task
         if old_worker and old_worker is not asyncio.current_task():
@@ -233,6 +310,10 @@ class MiniCPMManager:
             return
         if msg_type == "response.output.delta":
             kind = message.get("kind")
+            if session.barge_in_pending and kind in ("audio", "text"):
+                # Output already in flight before force_listen belongs to the
+                # interrupted turn and must never re-enter the avatar queue.
+                return
             if kind == "audio" and message.get("audio"):
                 response_id = message.get("response_id")
                 if session.active_response_id is None:
@@ -242,6 +323,9 @@ class MiniCPMManager:
                     session.avatar_session.flush_talk()
                     session.active_response_id = response_id or "minicpmo-response"
                     session.response_audio_seconds = 0.0
+                    session.model_speaking = True
+                    session.speaking_started_at = time.monotonic()
+                    session.barge_in_voice_ms = 0.0
                 pcm = np.frombuffer(base64.b64decode(message["audio"]), dtype="<f4")
                 session.response_audio_seconds += pcm.size / 24000.0
                 max_seconds = float(getattr(self.opt, "minicpmo_max_response_seconds", 120.0))
@@ -274,6 +358,10 @@ class MiniCPMManager:
                 session.active_response_id = None
                 session.response_audio_seconds = 0.0
                 session.response_text_window = ""
+                session.model_speaking = False
+                session.speaking_started_at = 0.0
+                session.barge_in_voice_ms = 0.0
+                session.barge_in_pending = False
                 await self._broadcast(session, {"type": "listening", "metrics": message.get("metrics", {})})
             return
         if msg_type == "error":

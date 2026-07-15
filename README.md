@@ -491,6 +491,11 @@ wav2lip_joyfox_点头_20260715_150527
 | `minicpmo_system_prompt` | 中文助手提示词 | MiniCPM 系统提示词 |
 | `minicpmo_input_chunk_ms` | `1000` | 每个输入音频单元时长 |
 | `minicpmo_max_response_seconds` | `120` | 单次连续回答保护上限 |
+| `minicpmo_barge_in_enabled` | `true` | 用户说话时强制打断当前回答 |
+| `minicpmo_barge_in_threshold_db` | `-34` | 抢话检测的麦克风音量阈值（dBFS） |
+| `minicpmo_barge_in_trigger_ms` | `280` | 连续人声达到该时长后触发打断 |
+| `minicpmo_barge_in_cooldown_ms` | `1500` | 两次打断之间的冷却时间 |
+| `minicpmo_barge_in_start_guard_ms` | `400` | 模型开始说话后暂时忽略麦克风能量的时长 |
 | `listenport` | `8010` | Web 页面和 LiveTalking API 端口 |
 | `turn_url` | `turn:127.0.0.1:3478?transport=tcp` | 本地 TCP TURN |
 | `max_session` | `5` | LiveTalking 会话上限 |
