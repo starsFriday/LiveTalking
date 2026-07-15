@@ -16,6 +16,8 @@ pretrained
 .DS_Store
 workspace/log_ngp.txt
 .idea
+.env
 models/
+MiniCPM-o-Demo/certs/key.pem
 *.log
 dist

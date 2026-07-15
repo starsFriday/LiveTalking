@@ -1,0 +1,41 @@
+# MiniCPM-o 独立推理环境（Python 3.12 / CUDA 12.8）
+# 安装命令：
+#   conda create -y -n livetalking-minicpm python=3.12
+#   conda activate livetalking-minicpm
+#   python -m pip install -r requirements-minicpm.txt
+# 仅包含 backend / worker / gateway 的运行依赖，不含 Gradio 和测试工具。
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+# setuptools 69 保留 pkg_resources，兼容 minicpmo-utils 固定的 librosa 0.9.0。
+setuptools==69.5.1
+torch==2.9.1+cu128
+torchvision==0.24.1+cu128
+torchaudio==2.9.1+cu128
+numpy==2.4.6
+
+# MiniCPM-o 4.5
+transformers==4.51.0
+accelerate==1.12.0
+safetensors==0.7.0
+minicpmo-utils[all]==1.0.6
+librosa==0.9.0
+soundfile==0.12.1
+Pillow==10.4.0
+decord==0.6.0
+moviepy==2.1.2
+einops==0.8.1
+scipy==1.18.0
+onnxruntime==1.21.0
+onnx==1.22.0
+HyperPyYAML==1.2.3
+ruamel.yaml==0.18.17
+
+# backend / worker / gateway
+fastapi==0.136.3
+uvicorn==0.48.0
+httpx==0.28.1
+websockets==16.1
+python-multipart==0.0.29
+PyYAML==6.0.3
+pydantic==2.13.4
+tqdm==4.67.3

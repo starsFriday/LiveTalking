@@ -42,6 +42,8 @@ import registry
 from server.routes import setup_routes
 from server.rtc_manager import RTCManager
 from server.session_manager import session_manager
+from minicpmo import MiniCPMManager
+from server.i2v_avatar_manager import i2v_avatar_manager
 
 import argparse
 import random
@@ -150,10 +152,13 @@ def main():
         global_avatars[opt.avatar_id] = load_avatar(opt.avatar_id)
         warm_up(opt.batch_size,global_avatars[opt.avatar_id],160)
 
+    i2v_avatar_manager.configure_runtime(opt.model, model)
+
     # init rtc manager
     session_manager.set_max_session(opt.max_session)
     session_manager.init_builder(build_avatar_session)
-    rtc_manager = RTCManager(opt)
+    minicpmo_manager = MiniCPMManager(opt)
+    rtc_manager = RTCManager(opt, minicpmo_manager=minicpmo_manager)
     # share avatar_sessions (RTCManager handles it but routes.py expects it)
 
     # 虚拟摄像头或 RTMP 模式：启动后台渲染线程
@@ -172,6 +177,8 @@ def main():
     appasync["llm_response"] = llm_response
     appasync["opt"] = opt
     appasync["rtc_manager"] = rtc_manager
+    appasync["minicpmo_manager"] = minicpmo_manager
+    appasync["avatar_cache"] = global_avatars
 
     appasync.on_shutdown.append(on_shutdown)
     appasync.router.add_post("/offer", offer)
@@ -197,7 +204,10 @@ def main():
         pagename='rtmpapi.html'
     elif opt.transport=='rtcpush':
         pagename='rtcpushapi.html'
-    logger.info('start http server; http://<serverip>:'+str(opt.listenport)+'/'+pagename)
+    page_url = f'http://127.0.0.1:{opt.listenport}/{pagename}'
+    if pagename == 'index.html':
+        page_url += '?v=minicpm-turn-tcp-v1'
+    logger.info(f'start http server; {page_url}')
     # logger.info('如果使用webrtc，推荐访问webrtc集成前端: http://<serverip>:'+str(opt.listenport)+'/dashboard.html')
     def run_server(runner):
         loop = asyncio.new_event_loop()

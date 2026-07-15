@@ -1,0 +1,51 @@
+# LiveTalking 主环境（Python 3.12 / CUDA 12.8）
+# 安装命令：
+#   conda create -y -n livetalking python=3.12
+#   conda activate livetalking
+#   python -m pip install -r requirements-livetalking.txt
+# 系统还需安装 ffmpeg；远程 WebRTC/TURN 场景还需 coturn。
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+# PyTorch / 数字人口型模型
+torch==2.9.1+cu128
+torchvision==0.24.1+cu128
+torchaudio==2.9.1+cu128
+numpy==1.26.4
+scipy==1.12.0
+opencv-python-headless==4.11.0.86
+Pillow==12.2.0
+einops==0.8.2
+transformers==5.5.3
+accelerate==1.13.0
+safetensors==0.7.0
+diffusers @ git+https://github.com/huggingface/diffusers.git@dc8d9032171c83741fd37ed2b12bc9d8274464f3
+face-recognition==1.3.0
+dlib==20.0.1
+ffmpeg-python==0.2.0
+more-itertools==11.1.0
+regex==2026.5.9
+omegaconf==2.3.0
+
+# 实时音视频与 Web 服务
+av==16.0.1
+aiortc==1.15.0
+aiohttp==3.14.1
+aiohttp-cors==0.8.1
+Flask==3.1.3
+python-dotenv==1.2.2
+PyYAML==6.0.3
+requests==2.34.2
+tqdm==4.67.3
+websockets==12.0
+
+# 音频、TTS 与原生 LLM 回退路径
+soundfile==0.12.1
+resampy==0.4.3
+librosa==0.11.0
+edge-tts==7.2.8
+openai==2.45.0
+dashscope==1.26.3
+
+# LiveTalking 本地 ASR 功能（server/asr_server.py、/api/asr）
+funasr==1.3.14
+modelscope==1.38.1

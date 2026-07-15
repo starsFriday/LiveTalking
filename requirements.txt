@@ -33,6 +33,7 @@ edge_tts
 flask
 #flask_sockets
 opencv-python-headless
+face-recognition  # MuseTalk avatar landmark preprocessing
 aiortc
 aiohttp_cors
 

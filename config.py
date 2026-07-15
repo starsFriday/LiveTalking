@@ -78,11 +78,35 @@ def parse_args():
     parser.add_argument('--REF_TEXT', type=str, default=None)
     parser.add_argument('--TTS_SERVER', type=str, default='http://127.0.0.1:9880')
 
+    # ─── MiniCPM-o realtime conversation ───────────────────────────────
+    parser.add_argument('--minicpmo_enabled', action=argparse.BooleanOptionalAction, default=False,
+                        help="enable MiniCPM-o realtime speech conversation")
+    parser.add_argument('--minicpmo_url', type=str,
+                        default='ws://127.0.0.1:8006/v1/realtime?mode=video',
+                        help="official MiniCPM-o-Demo realtime websocket URL")
+    parser.add_argument('--minicpmo_worker_health_url', type=str,
+                        default='http://127.0.0.1:22400/health',
+                        help="worker health endpoint used to avoid reconnect races")
+    parser.add_argument('--minicpmo_model_path', type=str, default='models/MiniCPM-o-4_5',
+                        help="model path mounted into the official MiniCPM-o-Demo service")
+    parser.add_argument('--minicpmo_system_prompt', type=str,
+                        default='你是一个自然、友好的语音助手，请简洁、完整地回答用户。')
+    parser.add_argument('--minicpmo_input_chunk_ms', type=int, default=1000,
+                        help="microphone PCM duration per input.append")
+    parser.add_argument('--minicpmo_max_response_seconds', type=float, default=120.0,
+                        help="hard-reset a runaway continuous model response after this many seconds")
+
     # ─── 传输 ─────────────────────────────────────────────────────────
     parser.add_argument('--transport', type=str, default='webrtc',
                         help="output: rtcpush/webrtc/rtmp/virtualcam")
     parser.add_argument('--stun', type=str, default='stun:stun.freeswitch.org:3478',
                         help="stun server url")
+    parser.add_argument('--turn_url', type=str, default='',
+                        help="TURN server URL, for example turn:127.0.0.1:3478?transport=tcp")
+    parser.add_argument('--turn_username', type=str, default='',
+                        help="TURN username")
+    parser.add_argument('--turn_credential', type=str, default='',
+                        help="TURN credential")
     parser.add_argument('--push_url', type=str,
                         default='http://localhost:1985/rtc/v1/whip/?app=live&stream=livestream')
     parser.add_argument('--max_session', type=int, default=5)

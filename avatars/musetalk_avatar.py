@@ -48,7 +48,7 @@ from avatars.base_avatar import BaseAvatar
 
 from tqdm import tqdm
 from utils.logger import logger
-from utils.image import read_imgs, mirror_index
+from utils.image import read_imgs, mirror_index, remove_legacy_livetalking_watermark
 from utils.device import initialize_device
 from registry import register
 
@@ -83,7 +83,7 @@ def load_avatar(avatar_id):
     frame_list_cycle = None
     input_img_list = glob.glob(os.path.join(full_imgs_path, '*.[jpJP][pnPN]*[gG]'))
     input_img_list = sorted(input_img_list, key=lambda x: int(os.path.splitext(os.path.basename(x))[0]))
-    frame_list_cycle = read_imgs(input_img_list)
+    frame_list_cycle = remove_legacy_livetalking_watermark(read_imgs(input_img_list))
     with open(mask_coords_path, 'rb') as f:
         mask_coords_list_cycle = pickle.load(f)
     input_mask_list = glob.glob(os.path.join(mask_out_path, '*.[jpJP][pnPN]*[gG]'))

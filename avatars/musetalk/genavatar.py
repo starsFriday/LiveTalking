@@ -28,7 +28,6 @@ def video2imgs(vid_path, save_path, ext='.png', cut_frame=10000000):
             break
         ret, frame = cap.read()
         if ret:
-            cv2.putText(frame, "LiveTalking", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (128,128,128), 1)
             cv2.imwrite(f"{save_path}/{count:08d}.png", frame)
             count += 1
         else:
@@ -46,7 +45,7 @@ def create_dir(dir_path):
         os.makedirs(dir_path)
 
 
-def generate_avatar(video_path, avatar_id, save_path='./data/avatars', bbox_shift=0, extra_margin=10, parsing_mode='jaw', version='v15', progress_callback=None):
+def generate_avatar(video_path, avatar_id, save_path='./data/avatars', bbox_shift=0, extra_margin=10, parsing_mode='jaw', version='v15', progress_callback=None, model_bundle=None):
     """
     生成avatar的核心逻辑
 
@@ -59,6 +58,7 @@ def generate_avatar(video_path, avatar_id, save_path='./data/avatars', bbox_shif
         parsing_mode: 解析模式
         version: 版本
         progress_callback: 进度回调函数，接收 0-100 的整数
+        model_bundle: 可选，复用 LiveTalking 已加载的 MuseTalk 模型
     """
     avatar_save_path = os.path.join(save_path, avatar_id)
     save_full_path = os.path.join(avatar_save_path, 'full_imgs')
@@ -84,7 +84,15 @@ def generate_avatar(video_path, avatar_id, save_path='./data/avatars', bbox_shif
         if is_video_file(video_path):
             video2imgs(video_path, save_full_path, ext='png')
         else:
-            shutil.copyfile(video_path, f"{save_full_path}/{os.path.basename(video_path)}")
+            # Normalize a still image to the same numeric PNG naming scheme
+            # used by video frames. Keeping the original basename (for
+            # example both 222.png and the later 00000000.png) creates two
+            # full frames but only one latent/mask/coordinate entry, which
+            # breaks realtime indexing.
+            source_image = cv2.imread(video_path)
+            if source_image is None:
+                raise ValueError(f"Unable to read input image: {video_path}")
+            cv2.imwrite(f"{save_full_path}/00000000.png", source_image)
     else:
         files = os.listdir(video_path)
         files.sort()
@@ -105,7 +113,10 @@ def generate_avatar(video_path, avatar_id, save_path='./data/avatars', bbox_shif
     coord_placeholder = (0.0, 0.0, 0.0, 0.0)
 
     device = torch.device(f"cuda" if torch.cuda.is_available() else "cpu")
-    vae_local, unet_local, pe_local = load_all_model(device=device)
+    if model_bundle is None:
+        vae_local, unet_local, pe_local = load_all_model(device=device)
+    else:
+        vae_local, unet_local, pe_local = model_bundle[:3]
     vae_local.vae = vae_local.vae.half().to(device)
 
     if version == "v15":

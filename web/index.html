@@ -3,216 +3,857 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LiveTalking - 数字人实时驱动</title>
+    <title>Joyfox Real-time Digital Human</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         :root {
-            --primary: #4361ee;
-            --primary-dark: #3f37c9;
-            --bg: #f0f4fc;
-            --card-bg: rgba(255,255,255,0.85);
-            --radius: 14px;
+            --primary: #5f91e8;
+            --primary-dark: #456fbd;
+            --accent: #36b8aa;
+            --accent-dark: #25877e;
+            --ink: #32495e;
+            --muted: #708397;
+            --card-bg: rgba(250, 253, 255, .9);
+            --line: rgba(68, 112, 170, .16);
+            --radius: 18px;
         }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-            color: #1e293b;
             min-height: 100vh;
             padding-bottom: 40px;
+            color: var(--ink);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 5% 10%, rgba(56, 146, 255, .3), transparent 31%),
+                radial-gradient(circle at 92% 12%, rgba(144, 87, 255, .26), transparent 30%),
+                radial-gradient(circle at 82% 90%, rgba(28, 205, 173, .23), transparent 32%),
+                linear-gradient(135deg, #e8f4ff 0%, #f0eaff 48%, #e3fff7 100%);
+            background-attachment: fixed;
         }
-        .navbar-brand { font-weight: 700; }
+        .app-container {
+            width: 100%;
+            max-width: 1580px;
+            margin: 0 auto;
+            padding: 28px 28px 40px;
+        }
+        .page-shell {
+            display: grid;
+            grid-template-columns: 150px minmax(0, 1fr);
+            align-items: start;
+            gap: 26px;
+        }
+        .brand-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            min-height: 0;
+            padding: 4px 0 0;
+            background: transparent;
+        }
+        .brand-logo {
+            display: block;
+            width: 145px;
+            height: auto;
+            margin: 0;
+            object-fit: contain;
+        }
+        .content-grid { min-width: 0; margin-top: 0; }
         .glass-card {
+            overflow: hidden;
+            margin-bottom: 24px;
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,.78);
             border-radius: var(--radius);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-            margin-bottom: 20px;
+            box-shadow: 0 18px 42px rgba(60,91,133,.12), 0 3px 10px rgba(60,91,133,.05);
         }
         .card-header {
-            background: transparent;
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-            padding: 16px 20px;
-            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            padding: 15px 20px;
+            font-weight: 700;
+            color: #3e5870;
+            background: linear-gradient(90deg, rgba(255,255,255,.62), rgba(230,240,252,.5));
+            border-bottom: 1px solid var(--line);
         }
-        .card-header i { color: var(--primary); }
-        .card-body { padding: 20px; }
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #4361ee, #3f37c9);
-            border: none;
+        .card-header i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 29px;
+            height: 29px;
+            color: var(--primary);
+            background: rgba(95,145,232,.14);
+            border-radius: 9px;
+        }
+        .connection-header {
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .connection-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: .98rem;
+            letter-spacing: .01em;
+        }
+        .connection-title i {
             color: #fff;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: linear-gradient(135deg, #48a8ff, #6579ee 55%, #995cdf);
+            border-radius: 50%;
+            box-shadow: 0 6px 15px rgba(88,105,215,.25);
         }
-        .btn-primary-custom:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(67,97,238,0.3); color: #fff; }
-        .btn-primary-custom:active { transform: translateY(0); }
-        .btn-danger-custom { background: #ef4444; border: none; color: #fff; font-weight: 600; border-radius: 8px; padding: 8px 16px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        .btn-danger-custom:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(239,68,68,0.3); }
-        .btn-danger-custom:active { transform: translateY(0); }
-        .btn-outline-custom { border: 2px solid var(--primary); color: var(--primary); font-weight: 600; border-radius: 8px; padding: 8px 16px; background: transparent; cursor: pointer; transition: all 0.2s; }
-        .btn-outline-custom:hover { background: var(--primary); color: #fff; }
-        .btn-outline-custom:active { transform: scale(0.97); }
-        video { width: 100%; border-radius: 8px; background: #000; }
-        .session-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; }
-        .connected { background: #d1fae5; color: #065f46; }
-        .disconnected { background: #fee2e2; color: #991b1b; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .status-dot.on { background: #10b981; }
-        .status-dot.off { background: #ef4444; }
-        .quick-link { text-decoration: none; }
-        .quick-link .glass-card { transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
-        .quick-link:hover .glass-card { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,0.1); }
-        pre { background: #1e293b; color: #e2e8f0; padding: 12px; border-radius: 8px; font-size: 0.8rem; max-height: 120px; overflow-y: auto; }
-        label { font-weight: 500; font-size: 0.9rem; color: #64748b; margin-bottom: 4px; }
-        .param-hint { font-size: 0.75rem; color: #94a3b8; }
+        .card-body { padding: 20px; }
+        .btn-primary-custom,
+        .btn-danger-custom,
+        .btn-outline-custom {
+            padding: 8px 17px;
+            font-weight: 650;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s, filter .2s, background .2s;
+        }
+        .btn-primary-custom {
+            color: #fff;
+            background: linear-gradient(135deg, #52a3f6, #6c72e8);
+            border: 0;
+            box-shadow: 0 7px 17px rgba(75,113,211,.22);
+        }
+        .btn-primary-custom:hover { color: #fff; filter: saturate(1.1); transform: translateY(-1px); box-shadow: 0 10px 22px rgba(75,113,211,.3); }
+        .btn-danger-custom { color: #fff; background: #e27185; border: 0; }
+        .btn-danger-custom:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(190,75,98,.24); }
+        .btn-outline-custom { color: var(--accent-dark); background: rgba(255,255,255,.55); border: 1px solid rgba(54,184,170,.72); }
+        .btn-outline-custom:hover { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: 0 8px 18px rgba(38,148,137,.22); }
+        .btn-primary-custom:active, .btn-danger-custom:active { transform: translateY(0); }
+        .btn-outline-custom:active { transform: scale(.97); }
+        .form-control, .form-select {
+            color: var(--ink);
+            background: rgba(255,255,255,.82);
+            border-color: #d7e0e6;
+            border-radius: 9px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: rgba(95,145,232,.76);
+            box-shadow: 0 0 0 .2rem rgba(95,145,232,.14);
+        }
+        label { margin-bottom: 5px; color: var(--muted); font-size: .86rem; font-weight: 600; }
         ::placeholder { color: #9ca3af !important; opacity: 1; }
-        :-ms-input-placeholder { color: #9ca3af; }
+        video { width: 100%; background: #111; border-radius: 12px; }
+        .media-panel, .camera-preview {
+            position: relative;
+            overflow: hidden;
+            background: #171d21;
+            border-radius: 14px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 10px 25px rgba(25,32,35,.12);
+        }
+        .media-panel {
+            width: 100%;
+            min-height: 0;
+            /* Match wav2lip256_avatar1 first frame (576 × 768). */
+            aspect-ratio: 3 / 4;
+        }
+        .media-panel > video {
+            position: absolute;
+            inset: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            object-fit: contain;
+            background: linear-gradient(135deg, rgba(229,243,255,.96), rgba(241,232,255,.94));
+        }
+        .camera-preview { min-height: 220px; }
+        .camera-preview > video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 220px;
+            max-height: 360px;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        .camera-empty {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #95a4ad;
+            text-align: center;
+            font-size: .85rem;
+            pointer-events: none;
+        }
+        .avatar-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+            gap: 12px;
+            max-height: 510px;
+            padding: 3px 4px 5px;
+            overflow: auto;
+            scrollbar-color: rgba(93,145,221,.42) transparent;
+            scrollbar-width: thin;
+        }
+        .avatar-picker-item {
+            position: relative;
+            aspect-ratio: 3 / 4;
+            padding: 0;
+            overflow: hidden;
+            cursor: pointer;
+            background: linear-gradient(145deg, rgba(226,241,255,.92), rgba(237,231,255,.92));
+            border: 2px solid rgba(102,143,200,.17);
+            border-radius: 13px;
+            box-shadow: 0 7px 18px rgba(57,84,128,.1);
+            transition: transform .2s, border-color .2s, box-shadow .2s, filter .2s;
+        }
+        .avatar-picker-item:hover {
+            z-index: 1;
+            transform: translateY(-3px);
+            border-color: rgba(75,159,235,.68);
+            box-shadow: 0 12px 25px rgba(62,103,170,.2);
+        }
+        .avatar-picker-item.selected {
+            border-color: #57aeea;
+            box-shadow:
+                0 0 0 3px rgba(102,121,239,.17),
+                0 13px 28px rgba(63,103,182,.25),
+                inset 0 0 0 1px rgba(255,255,255,.72);
+        }
+        .avatar-picker-item:disabled {
+            cursor: default;
+            filter: saturate(.72) opacity(.76);
+            transform: none;
+        }
+        .avatar-picker-item.disabled {
+            cursor: default;
+            filter: saturate(.72) opacity(.76);
+            transform: none;
+        }
+        .avatar-picker-item img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: linear-gradient(145deg, #e9f5ff, #f1ebff);
+        }
+        .avatar-picker-id {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            min-height: 43px;
+            padding: 17px 40px 6px 7px;
+            overflow: hidden;
+            color: #fff;
+            text-align: left;
+            font: 650 .64rem/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            overflow-wrap: anywhere;
+            text-shadow: 0 1px 4px rgba(0,0,0,.72);
+            background: linear-gradient(transparent, rgba(3,14,31,.88));
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+        .avatar-picker-action {
+            position: absolute;
+            top: 7px;
+            left: 7px;
+            max-width: calc(100% - 14px);
+            padding: 3px 7px;
+            overflow: hidden;
+            color: #e8faff;
+            font-size: .64rem;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background: rgba(10,32,57,.72);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(139,222,255,.35);
+            border-radius: 999px;
+        }
+        .avatar-picker-check {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            color: #fff;
+            background: linear-gradient(135deg, #42c9ef, #6d72ef);
+            border: 2px solid rgba(255,255,255,.86);
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(29,77,157,.35);
+        }
+        .avatar-picker-item.selected .avatar-picker-check { display: flex; }
+        .avatar-picker-delete {
+            position: absolute;
+            right: 7px;
+            bottom: 7px;
+            z-index: 4;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 29px;
+            height: 29px;
+            padding: 0;
+            color: #fff;
+            cursor: pointer;
+            visibility: hidden;
+            opacity: 0;
+            background: rgba(218, 65, 91, .9);
+            backdrop-filter: blur(7px);
+            border: 1px solid rgba(255,255,255,.72);
+            border-radius: 9px;
+            box-shadow: 0 6px 15px rgba(86, 19, 37, .3);
+            transform: translateY(5px) scale(.9);
+            transition: opacity .18s, visibility .18s, transform .18s, background .18s;
+        }
+        .avatar-picker-item:hover .avatar-picker-delete,
+        .avatar-picker-item:focus-within .avatar-picker-delete,
+        .avatar-picker-delete:focus-visible {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .avatar-picker-delete:hover { background: #e63e60; }
+        .avatar-picker-delete:disabled {
+            cursor: not-allowed;
+            opacity: .45;
+        }
+        @media (hover: none) {
+            .avatar-picker-delete {
+                visibility: visible;
+                opacity: 1;
+                transform: none;
+            }
+        }
+        .avatar-picker-empty {
+            grid-column: 1 / -1;
+            padding: 28px 16px;
+            color: var(--muted);
+            text-align: center;
+            font-size: .82rem;
+            background: rgba(235,244,254,.55);
+            border: 1px dashed rgba(95,145,232,.3);
+            border-radius: 12px;
+        }
+        .avatar-picker-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 15px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+        }
+        .assistant-status {
+            background: linear-gradient(135deg, rgba(225,241,255,.88), rgba(239,230,255,.82));
+            border: 1px solid rgba(95,145,232,.16);
+        }
+        .assistant-status > div > i { color: var(--accent); }
+        .optional-badge {
+            margin-left: auto;
+            padding: 4px 9px;
+            color: #5c6f8b;
+            font-size: .7rem;
+            font-weight: 700;
+            background: rgba(255,255,255,.72);
+            border: 1px solid rgba(95,145,232,.18);
+            border-radius: 999px;
+        }
+        .creator-description {
+            margin-bottom: 14px;
+            color: var(--muted);
+            font-size: .82rem;
+            line-height: 1.65;
+        }
+        .image-upload-zone {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 132px;
+            padding: 14px;
+            overflow: hidden;
+            color: #668098;
+            text-align: center;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(237,247,255,.76), rgba(244,238,255,.68));
+            border: 1.5px dashed rgba(95,145,232,.48);
+            border-radius: 12px;
+            transition: border-color .2s, transform .2s, background .2s;
+        }
+        .image-upload-zone:hover {
+            border-color: rgba(79,128,224,.8);
+            transform: translateY(-1px);
+        }
+        .image-upload-placeholder i {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary);
+            font-size: 1.6rem;
+        }
+        .image-upload-placeholder small { display: block; margin-top: 3px; color: #8b9bac; }
+        .image-source-preview {
+            display: none;
+            width: 100%;
+            max-height: 260px;
+            object-fit: contain;
+            border-radius: 9px;
+        }
+        .image-upload-zone.has-preview .image-source-preview { display: block; }
+        .image-upload-zone.has-preview .image-upload-placeholder { display: none; }
+        .generation-mode-selector {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .generation-mode-option { position: relative; margin: 0; cursor: pointer; }
+        .generation-mode-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .generation-mode-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 65px;
+            padding: 10px 12px;
+            color: #60758b;
+            background: rgba(242,248,255,.72);
+            border: 1.5px solid rgba(94,139,203,.2);
+            border-radius: 12px;
+            transition: transform .2s, border-color .2s, background .2s, box-shadow .2s;
+        }
+        .generation-mode-option:hover .generation-mode-content {
+            transform: translateY(-1px);
+            border-color: rgba(76,157,231,.58);
+        }
+        .generation-mode-option input:checked + .generation-mode-content {
+            color: #365b87;
+            background: linear-gradient(135deg, rgba(224,244,255,.95), rgba(235,232,255,.92));
+            border-color: #60aee9;
+            box-shadow: 0 0 0 3px rgba(93,139,231,.12), 0 8px 18px rgba(63,104,171,.13);
+        }
+        .generation-mode-icon {
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            color: #fff;
+            background: linear-gradient(135deg, #4fc9ef, #6d73ed);
+            border-radius: 10px;
+            box-shadow: 0 6px 13px rgba(70,111,207,.2);
+        }
+        .generation-mode-copy { min-width: 0; }
+        .generation-mode-copy strong {
+            display: block;
+            color: #36536e;
+            font-size: .83rem;
+            letter-spacing: .08em;
+        }
+        .generation-mode-copy small {
+            display: block;
+            margin-top: 2px;
+            color: #7d90a4;
+            font-size: .69rem;
+            font-weight: 550;
+        }
+        .creator-result {
+            display: none;
+            margin-top: 12px;
+            padding: 10px 12px;
+            font-size: .8rem;
+            line-height: 1.55;
+            border-radius: 9px;
+        }
+        .creator-result.success { display: block; color: #167568; background: rgba(65,190,169,.12); border: 1px solid rgba(65,190,169,.24); }
+        .creator-result.error { display: block; color: #ae4559; background: rgba(226,113,133,.12); border: 1px solid rgba(226,113,133,.22); }
+        .generation-overlay {
+            position: fixed;
+            z-index: 9999;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background:
+                radial-gradient(circle at 18% 22%, rgba(74,164,255,.2), transparent 34%),
+                radial-gradient(circle at 84% 74%, rgba(102,91,238,.2), transparent 35%),
+                rgba(226,237,250,.74);
+            backdrop-filter: blur(15px) saturate(1.12);
+        }
+        .generation-overlay.active { display: flex; }
+        .generation-dialog {
+            position: relative;
+            width: min(860px, 100%);
+            padding: 31px 68px 34px;
+            text-align: center;
+            background:
+                radial-gradient(circle at 50% 5%, rgba(94,169,255,.18), transparent 37%),
+                linear-gradient(135deg, rgba(8,22,43,.97), rgba(12,20,47,.97) 56%, rgba(14,28,51,.97));
+            border: 1px solid rgba(122,203,255,.48);
+            border-radius: 22px;
+            box-shadow:
+                0 28px 72px rgba(51,77,126,.28),
+                0 0 34px rgba(84,181,255,.15),
+                inset 0 0 36px rgba(83,131,229,.09);
+        }
+        .generation-dialog::before,
+        .generation-dialog::after {
+            position: absolute;
+            pointer-events: none;
+            content: "";
+        }
+        .generation-dialog::before {
+            inset: 5px;
+            opacity: .8;
+            border: 1px solid rgba(95,141,234,.18);
+            border-radius: 17px;
+            background: repeating-linear-gradient(0deg, transparent 0 4px, rgba(132,208,255,.018) 5px);
+        }
+        .generation-dialog::after {
+            top: -2px;
+            left: 50%;
+            width: 36%;
+            height: 3px;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, transparent, #5de3ff 38%, #7a85ff 62%, transparent);
+            box-shadow: 0 0 14px rgba(87,210,255,.82);
+        }
+        .generation-energy-border {
+            position: absolute;
+            z-index: 3;
+            inset: -3px;
+            width: calc(100% + 6px);
+            height: calc(100% + 6px);
+            overflow: visible;
+            pointer-events: none;
+        }
+        .generation-border-track {
+            fill: none;
+            stroke: rgba(86,145,221,.2);
+            stroke-width: 1.4;
+            vector-effect: non-scaling-stroke;
+        }
+        .generation-border-progress {
+            fill: none;
+            stroke: url(#generationBorderGradient);
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-dasharray: 100 100;
+            stroke-dashoffset: 98;
+            filter: url(#generationBorderGlow);
+            vector-effect: non-scaling-stroke;
+            transition: stroke-dashoffset .12s linear;
+        }
+        .generation-border-flow {
+            fill: none;
+            stroke: rgba(224,251,255,.95);
+            stroke-width: 1.15;
+            stroke-linecap: round;
+            stroke-dasharray: .75 1.45;
+            filter: url(#generationBorderGlow);
+            vector-effect: non-scaling-stroke;
+            animation: generation-border-flow 1.1s linear infinite;
+        }
+        .generation-border-pulse {
+            fill: #f1fdff;
+            stroke: #66e3ff;
+            stroke-width: 1.2;
+            filter: url(#generationBorderGlowStrong);
+            vector-effect: non-scaling-stroke;
+        }
+        @keyframes generation-border-flow {
+            to { stroke-dashoffset: -18; }
+        }
+        .generation-hud-header {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            margin: 0 42px 17px;
+        }
+        .generation-hud-header::before,
+        .generation-hud-header::after {
+            height: 1px;
+            content: "";
+            opacity: .55;
+            background: linear-gradient(90deg, transparent, rgba(94,218,255,.84));
+        }
+        .generation-hud-header::after { transform: scaleX(-1); }
+        .generation-percent {
+            min-width: 72px;
+            color: #8eebff;
+            font: 700 1rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            letter-spacing: .08em;
+            text-shadow: 0 0 8px rgba(88,219,255,.9), 0 0 22px rgba(99,127,255,.58);
+        }
+        .loading-title {
+            position: relative;
+            z-index: 2;
+            display: inline-flex;
+            align-items: baseline;
+            margin-bottom: 12px;
+            color: #dff8ff;
+            font: 700 clamp(.77rem, 2.5vw, .94rem)/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            letter-spacing: .22em;
+            text-shadow: 0 0 7px rgba(215,248,255,.9), 0 0 19px rgba(72,201,255,.62);
+        }
+        .loading-dots {
+            display: inline-flex;
+            width: 1.35em;
+            justify-content: flex-start;
+            margin-left: .08em;
+        }
+        .loading-dots i {
+            opacity: 0;
+            font-style: normal;
+            animation-duration: 1.6s;
+            animation-timing-function: steps(1, end);
+            animation-iteration-count: infinite;
+        }
+        .loading-dots i:nth-child(1) { animation-name: loading-dot-one; }
+        .loading-dots i:nth-child(2) { animation-name: loading-dot-two; }
+        .loading-dots i:nth-child(3) { animation-name: loading-dot-three; }
+        @keyframes loading-dot-one { 0%, 19%, 90%, 100% { opacity: 0; } 20%, 89% { opacity: 1; } }
+        @keyframes loading-dot-two { 0%, 39%, 90%, 100% { opacity: 0; } 40%, 89% { opacity: 1; } }
+        @keyframes loading-dot-three { 0%, 59%, 90%, 100% { opacity: 0; } 60%, 89% { opacity: 1; } }
+        .generation-progress {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 16px;
+            background: rgba(3,12,30,.94);
+            border: 1px solid rgba(95,213,255,.34);
+            border-radius: 4px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,.75), 0 0 20px rgba(68,184,255,.12);
+        }
+        .generation-progress::before,
+        .generation-progress::after {
+            position: absolute;
+            z-index: 3;
+            top: 50%;
+            width: 33px;
+            height: 32px;
+            content: "";
+            transform: translateY(-50%);
+            border-color: #69d8ff;
+            border-style: solid;
+            filter: drop-shadow(0 0 6px rgba(89,201,255,.64));
+        }
+        .generation-progress::before {
+            left: -44px;
+            border-width: 2px 0 2px 5px;
+            border-radius: 7px 0 0 7px;
+        }
+        .generation-progress::after {
+            right: -44px;
+            border-width: 2px 5px 2px 0;
+            border-radius: 0 7px 7px 0;
+        }
+        .generation-progress-bar {
+            width: 2%;
+            height: 100%;
+            overflow: hidden;
+            background:
+                repeating-linear-gradient(135deg, rgba(224,252,255,.96) 0 5px, #57dcff 5px 11px, #6c84ff 11px 16px, #3957b9 16px 20px);
+            border-radius: 3px;
+            box-shadow: 0 0 6px rgba(199,249,255,.98), 0 0 18px rgba(61,201,255,.88), 0 0 36px rgba(92,101,255,.48);
+            transition: width .12s linear;
+            animation: generation-beam 1.35s linear infinite;
+        }
+        .generation-progress-bar::after {
+            display: block;
+            width: 62px;
+            height: 100%;
+            margin-left: auto;
+            content: "";
+            background: linear-gradient(90deg, transparent, rgba(236,253,255,.98), rgba(255,255,255,.35));
+            filter: blur(1px);
+        }
+        @keyframes generation-beam {
+            0% { filter: brightness(.9); background-position: 0 0; }
+            50% { filter: brightness(1.2); }
+            100% { filter: brightness(.9); background-position: 40px 0; }
+        }
+        .generation-hud-footer {
+            position: relative;
+            z-index: 2;
+            width: 42%;
+            height: 3px;
+            margin: 20px auto 0;
+            background: linear-gradient(90deg, transparent, #619dff 24%, #55dcff 50%, #796eff 76%, transparent);
+            box-shadow: 0 0 12px rgba(78,187,255,.52);
+        }
+        .generation-hud-footer::before,
+        .generation-hud-footer::after {
+            position: absolute;
+            top: -3px;
+            width: 7px;
+            height: 7px;
+            content: "";
+            border: 1px solid rgba(104,221,255,.82);
+            transform: rotate(45deg);
+        }
+        .generation-hud-footer::before { left: -18px; }
+        .generation-hud-footer::after { right: -18px; }
+        @media (prefers-reduced-motion: reduce) {
+            .loading-dots i,
+            .generation-progress-bar,
+            .generation-border-flow { animation: none; }
+        }
+        body.generation-locked { overflow: hidden; }
+        .session-summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 29px;
+            margin-left: auto;
+            background: transparent;
+        }
+        .session-id { max-width: 255px; overflow: hidden; color: var(--muted); font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+        .session-badge { padding: 5px 11px; font-size: .75rem; font-weight: 650; border: 1px solid transparent; border-radius: 20px; }
+        .connected { color: #157a6e; background: rgba(54,184,170,.14); border-color: rgba(38,148,137,.18); }
+        .disconnected { color: #b34f63; background: rgba(226,113,133,.13); border-color: rgba(190,75,98,.16); }
+        .status-dot { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; }
+        .status-dot.on { background: #28b8a7; box-shadow: 0 0 0 3px rgba(40,184,167,.13); }
+        .status-dot.off { background: #df7083; box-shadow: 0 0 0 3px rgba(223,112,131,.12); }
+        .text-muted { color: #73879a !important; }
+        @media (max-width: 767.98px) {
+            .app-container { padding: 18px 16px 32px; }
+            .page-shell { grid-template-columns: 1fr; gap: 14px; }
+            .brand-header { justify-content: flex-start; min-height: 0; }
+            .brand-logo { width: 118px; }
+            .connection-header { align-items: flex-start; }
+            .session-id { max-width: 210px; }
+            .card-body { padding: 16px; }
+            .generation-dialog { padding: 28px 46px 31px; border-radius: 17px; }
+            .generation-hud-header { margin: 0 0 15px; }
+            .loading-title { letter-spacing: .13em; }
+            .generation-progress::before { left: -35px; width: 27px; }
+            .generation-progress::after { right: -35px; width: 27px; }
+            .generation-mode-selector { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark" style="background: linear-gradient(135deg, #4361ee, #3f37c9); box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-    <div class="container-fluid px-4">
-        <span class="navbar-brand"><i class="bi bi-camera-video-fill me-2"></i>LiveTalking</span>
-        <a href="/index-en.html" class="text-white-50 small text-decoration-none me-2">English</a>
-        <div class="d-flex gap-2">
-            <span class="session-badge disconnected" id="statusBadge"><span class="status-dot off"></span>未连接</span>
-            <span class="text-white-50 small" id="sessionIdDisplay">SID: -</span>
-        </div>
-    </div>
-</nav>
-
-<div class="container mt-4">
-    <!-- Quick Links -->
-    <div class="row g-3 mb-2">
-        <div class="col-md-3">
-            <a href="/avatar.html" class="quick-link" target="_blank">
-                <div class="glass-card p-3 text-center">
-                    <i class="bi bi-person-bounding-box fs-2" style="color: #4361ee;"></i>
-                    <div class="fw-bold mt-2">Avatar 生成</div>
-                    <div class="small text-muted">创建数字人形象</div>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-3">
-            <a href="/admin.html" class="quick-link" target="_blank">
-                <div class="glass-card p-3 text-center">
-                    <i class="bi bi-speedometer2 fs-2" style="color: #4361ee;"></i>
-                    <div class="fw-bold mt-2">管理后台</div>
-                    <div class="small text-muted">监控会话与配置</div>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-3">
-            <a href="/tts/index.html" class="quick-link" target="_blank">
-                <div class="glass-card p-3 text-center">
-                    <i class="bi bi-soundwave fs-2" style="color: #4361ee;"></i>
-                    <div class="fw-bold mt-2">TTS 语音管理</div>
-                    <div class="small text-muted">语音列表 · 克隆 · 合成</div>
-                </div>
-            </a>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Left Column: Connection + Video -->
-        <div class="col-lg-7">
-            <!-- 1. WebRTC Connection -->
+<div class="container-fluid app-container page-shell">
+    <header class="brand-header">
+        <img class="brand-logo" src="/assets/joyfox-logo.png" alt="Joyfox Real-time Digital Human">
+    </header>
+    <div class="row g-4 content-grid">
+        <!-- Left Column: Realtime Avatar -->
+        <div class="col-lg-7 order-lg-2">
+            <!-- Realtime Avatar -->
             <div class="glass-card">
-                <div class="card-header"><i class="bi bi-broadcast"></i> WebRTC 连接</div>
+                <div class="card-header connection-header">
+                    <span class="connection-title"><i class="bi bi-stars"></i> 实时数字人</span>
+                    <span class="session-summary">
+                        <span class="session-badge disconnected" id="statusBadge"><span class="status-dot off"></span>未连接</span>
+                        <span class="session-id" id="sessionIdDisplay">SID: -</span>
+                    </span>
+                </div>
                 <div class="card-body">
-                    <div class="row g-2 align-items-end mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Avatar ID</label>
-                            <input type="text" class="form-control form-control-sm" id="offerAvatar" placeholder="wav2lip256_avatar1">
+                    <div>
+                        <div class="media-panel avatar">
+                            <video id="video" autoplay playsinline muted poster="/assets/joyfox-logo.png"></video>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">参考音频</label>
-                            <input type="text" class="form-control form-control-sm" id="offerRefAudio" placeholder="zh-CN-YunxiaNeural">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">参考音频文本</label>
-                            <input type="text" class="form-control form-control-sm" id="offerRefText" placeholder="参考文本（可选）">
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn-primary-custom" id="btnStart" onclick="start()"><i class="bi bi-play-fill"></i> 开始连接</button>
-                        <button class="btn-danger-custom" id="btnStop" onclick="stop()" style="display:none;"><i class="bi bi-stop-fill"></i> 断开连接</button>
-                    </div>
-                    <div id="offerError" class="alert alert-danger mt-3" role="alert" style="display:none;"></div>
-                    <div class="mt-3">
-                        <video id="video" autoplay playsinline muted controls></video>
                         <audio id="audio" autoplay></audio>
                     </div>
+                    <div class="assistant-status mt-3 p-3 rounded-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-mic-fill"></i>
+                            <strong>Joyfox-FullDuplex：</strong><span id="minicpmStatus">未连接</span>
+                        </div>
+                        <div class="small text-muted" id="minicpmText">连接后允许摄像头和麦克风权限，即可开始全模态实时对话。</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Drivers + Actions -->
-        <div class="col-lg-5">
-            <!-- 2. Text Driver -->
+        <!-- Right Column: Local Camera -->
+        <div class="col-lg-5 order-lg-1">
+            <!-- Local Camera Preview -->
             <div class="glass-card">
-                <div class="card-header"><i class="bi bi-chat-text-fill"></i> 文本驱动 (POST /human)</div>
+                <div class="card-header"><i class="bi bi-camera-video-fill"></i> 我的摄像头</div>
                 <div class="card-body">
-                    <div class="mb-2">
-                        <label class="form-label">输入文本 <span class="param-hint">(type: echo/chat)</span></label>
-                        <textarea class="form-control form-control-sm" id="txtMessage" rows="2" placeholder="输入要播报的文本...">你好，欢迎使用LiveTalking</textarea>
-                    </div>
-                    <div class="d-flex gap-2 align-items-end">
-                        <select class="form-select form-select-sm" style="width:120px;" id="txtType">
-                            <option value="echo">Echo 复读</option>
-                            <option value="chat">Chat LLM</option>
-                        </select>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="txtInterrupt" checked>
-                            <label class="form-check-label small">打断</label>
-                        </div>
-                        <button class="btn-primary-custom btn-sm ms-auto" onclick="sendText()"><i class="bi bi-send"></i> 发送</button>
-                        <button class="btn-outline-custom btn-sm" onclick="interrupt()"><i class="bi bi-stop-circle"></i> 打断</button>
+                    <div class="camera-preview">
+                        <video id="localVideo" autoplay playsinline muted></video>
+                        <div class="camera-empty" id="localCameraStatus">连接后显示摄像头画面</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. Audio Upload -->
-            <div class="glass-card">
-                <div class="card-header"><i class="bi bi-mic-fill"></i> 音频驱动 (POST /humanaudio)</div>
+            <div class="glass-card" id="avatarPickerCard">
+                <div class="card-header"><i class="bi bi-person-bounding-box"></i> 选择数字人</div>
                 <div class="card-body">
-                    <input type="file" class="form-control form-control-sm mb-2" id="audioFile" accept="audio/*">
-                    <button class="btn-primary-custom btn-sm" onclick="uploadAudio()"><i class="bi bi-upload"></i> 上传并播放</button>
-                </div>
-            </div>
-
-            <!-- 4. Recording -->
-            <div class="glass-card">
-                <div class="card-header"><i class="bi bi-record-circle"></i> 录制控制 (POST /record)</div>
-                <div class="card-body">
-                    <div class="d-flex gap-2">
-                        <button class="btn-outline-custom btn-sm" id="btnRecToggle" onclick="toggleRecord()"><i class="bi bi-record-circle"></i> 开始录制</button>
-                        <button class="btn-outline-custom btn-sm" id="btnDownload" onclick="downloadRecord()" disabled><i class="bi bi-download"></i> 下载录像</button>
+                    <input id="offerAvatar" type="hidden" value="">
+                    <div class="avatar-picker-grid" id="avatarPickerGrid" aria-live="polite" aria-busy="true">
+                        <div class="avatar-picker-empty">正在读取数字人列表…</div>
+                    </div>
+                    <div id="offerError" class="alert alert-danger mt-3" role="alert" style="display:none;"></div>
+                    <div class="avatar-picker-controls">
+                        <button class="btn-primary-custom" id="btnStart" onclick="start()" disabled><i class="bi bi-play-fill"></i> 开始连接</button>
+                        <button class="btn-danger-custom" id="btnStop" onclick="disconnect()" style="display:none;"><i class="bi bi-stop-fill"></i> 断开连接</button>
+                        <button class="btn-outline-custom" id="btnClearConnections" onclick="clearConnections()"><i class="bi bi-trash3"></i> 清空连接</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 5. Custom State -->
-            <div class="glass-card">
-                <div class="card-header"><i class="bi bi-sliders"></i> 动作编排 (POST /set_audiotype)</div>
+            <div class="glass-card" id="avatarCreatorCard">
+                <div class="card-header">
+                    <i class="bi bi-person-plus-fill"></i> 生成我的数字人
+                    <span class="optional-badge">可选</span>
+                </div>
                 <div class="card-body">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-6">
-                            <label class="form-label">Audiotype 索引</label>
-                            <input type="number" class="form-control form-control-sm" id="audiotypeVal" value="2" min="2">
-                        </div>
-                        <div class="col-6">
-                            <button class="btn-primary-custom btn-sm w-100" onclick="setAudiotype()"><i class="bi bi-arrow-right-circle"></i> 切换状态</button>
-                        </div>
+                    <div class="creator-description">
+                        上传一张清晰正面人物图片。
                     </div>
+                    <label class="image-upload-zone" id="avatarImageDrop" for="avatarSourceImage">
+                        <input id="avatarSourceImage" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                        <span class="image-upload-placeholder">
+                            <i class="bi bi-image"></i>
+                            点击选择人物图片
+                            <small>支持 JPG、PNG、WebP，最大 25 MB</small>
+                        </span>
+                        <img class="image-source-preview" id="avatarSourcePreview" alt="待生成数字人的人物图片预览">
+                    </label>
+                    <div class="generation-mode-selector" role="radiogroup" aria-label="数字人生成模式">
+                        <label class="generation-mode-option">
+                            <input type="radio" name="avatarGenerationMode" value="lite" checked>
+                            <span class="generation-mode-content">
+                                <span class="generation-mode-icon"><i class="bi bi-feather"></i></span>
+                                <span class="generation-mode-copy"><strong>LITE</strong><small>仅生成第 1 个动作</small></span>
+                            </span>
+                        </label>
+                        <label class="generation-mode-option">
+                            <input type="radio" name="avatarGenerationMode" value="std">
+                            <span class="generation-mode-content">
+                                <span class="generation-mode-icon"><i class="bi bi-lightning-charge-fill"></i></span>
+                                <span class="generation-mode-copy"><strong>STD</strong><small>生成前 7 个动作</small></span>
+                            </span>
+                        </label>
+                        <label class="generation-mode-option">
+                            <input type="radio" name="avatarGenerationMode" value="pro">
+                            <span class="generation-mode-content">
+                                <span class="generation-mode-icon"><i class="bi bi-stars"></i></span>
+                                <span class="generation-mode-copy"><strong>PRO</strong><small>生成完整 14 个动作</small></span>
+                            </span>
+                        </label>
+                    </div>
+                    <button class="btn-primary-custom w-100 mt-3" id="btnGenerateAvatar" onclick="startAvatarGeneration()" disabled>
+                        <i class="bi bi-stars"></i> 生成数字人
+                    </button>
+                    <div class="creator-result" id="creatorResult"></div>
                 </div>
             </div>
 
@@ -220,9 +861,78 @@
     </div>
 </div>
 
+<div class="generation-overlay" id="generationOverlay" aria-hidden="true">
+    <div class="generation-dialog" role="status" aria-live="polite">
+        <svg class="generation-energy-border" viewBox="0 0 860 180" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+                <linearGradient id="generationBorderGradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#67e8ff"></stop>
+                    <stop offset=".48" stop-color="#58a7ff"></stop>
+                    <stop offset=".76" stop-color="#8476ff"></stop>
+                    <stop offset="1" stop-color="#68e5ff"></stop>
+                </linearGradient>
+                <filter id="generationBorderGlow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="2.4" result="blur"></feGaussianBlur>
+                    <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+                </filter>
+                <filter id="generationBorderGlowStrong" x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur stdDeviation="5" result="blur"></feGaussianBlur>
+                    <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+                </filter>
+                <mask id="generationBorderMask" maskUnits="userSpaceOnUse" x="0" y="0" width="860" height="180">
+                    <rect id="generationBorderMaskProgress" x="3" y="3" width="854" height="174" rx="20" pathLength="100"
+                        fill="none" stroke="white" stroke-width="10" stroke-linecap="round"
+                        stroke-dasharray="100 100" stroke-dashoffset="98"></rect>
+                </mask>
+            </defs>
+            <rect class="generation-border-track" x="3" y="3" width="854" height="174" rx="20" pathLength="100"></rect>
+            <rect class="generation-border-progress" id="generationBorderProgress" x="3" y="3" width="854" height="174" rx="20" pathLength="100"></rect>
+            <rect class="generation-border-flow" x="3" y="3" width="854" height="174" rx="20" pathLength="100"
+                mask="url(#generationBorderMask)"></rect>
+            <circle class="generation-border-pulse" id="generationBorderPulse" cx="23" cy="3" r="3.4"></circle>
+        </svg>
+        <div class="loading-title" aria-label="LOADING">
+            <span>LOADING</span><span class="loading-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>
+        </div>
+        <div class="generation-hud-header">
+            <span></span>
+            <span class="generation-percent" id="generationPercent">2%</span>
+            <span></span>
+        </div>
+        <div class="generation-progress">
+            <div class="generation-progress-bar" id="generationProgressBar"></div>
+        </div>
+        <div class="generation-hud-footer" aria-hidden="true"></div>
+    </div>
+</div>
+
 <script>
 let pc = null;
 let sessionid = null;
+let connectionTimer = null;
+let userMediaStream = null;
+let minicpmEvents = null;
+let minicpmEnabled = false;
+let remoteMediaStream = null;
+let minicpmInput = null;
+let microphoneContext = null;
+let microphoneProcessor = null;
+let cameraTimer = null;
+let usingTcpTurn = false;
+let avatarCreatorConfig = null;
+let avatarGenerationTaskId = null;
+let avatarGenerationPollTimer = null;
+let avatarPrimaryReadyTaskId = null;
+let avatarGenerationInteractionLocked = false;
+let avatarPreviewObjectUrl = null;
+const generationVisual = {
+    active: false,
+    progress: 2,
+    backendProgress: 2,
+    phase: 'upload',
+    phaseStartedAt: 0,
+    animationFrame: null,
+};
 
 function updateStatus(connected) {
     const badge = document.getElementById('statusBadge');
@@ -235,9 +945,643 @@ function updateStatus(connected) {
     }
 }
 
+function updateConnectingStatus() {
+    const badge = document.getElementById('statusBadge');
+    badge.className = 'session-badge disconnected';
+    badge.innerHTML = '<span class="status-dot off"></span>连接中';
+}
+
+function resetConnectionControls() {
+    const startButton = document.getElementById('btnStart');
+    startButton.disabled = !document.getElementById('offerAvatar').value;
+    startButton.innerHTML = '<i class="bi bi-play-fill"></i> 开始连接';
+    startButton.style.display = 'inline-block';
+    document.getElementById('btnStop').style.display = 'none';
+    setAvatarPickerDisabled(false);
+}
+
 function setSessionId(sid) {
     sessionid = sid;
     document.getElementById('sessionIdDisplay').textContent = 'SID: ' + (sid || '-');
+}
+
+async function loadAvatarOptions(preferredAvatar = '') {
+    const selectedInput = document.getElementById('offerAvatar');
+    const grid = document.getElementById('avatarPickerGrid');
+    const previousSelection = preferredAvatar || selectedInput.value;
+    grid.setAttribute('aria-busy', 'true');
+    grid.replaceChildren(createAvatarPickerMessage('正在读取数字人列表…'));
+    selectedInput.value = '';
+    document.getElementById('btnStart').disabled = true;
+    try {
+        const response = await fetch('/api/avatars', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        if (payload.code !== 0) throw new Error(payload.msg || '读取失败');
+
+        const data = payload.data || {};
+        const avatars = Array.isArray(data.avatars) ? data.avatars : [];
+        if (!avatars.length) {
+            grid.replaceChildren(createAvatarPickerMessage(`没有可用的 ${data.model || ''} 数字人`));
+            grid.setAttribute('aria-busy', 'false');
+            return;
+        }
+
+        const availableIds = new Set(avatars.map(avatar => avatar.id));
+        const selectedId = availableIds.has(previousSelection)
+            ? previousSelection
+            : availableIds.has(data.default)
+                ? data.default
+                : avatars[0].id;
+
+        grid.replaceChildren();
+        avatars.forEach(avatar => {
+            const card = document.createElement('div');
+            card.className = 'avatar-picker-item';
+            card.dataset.avatarId = avatar.id;
+            card.dataset.isDefault = avatar.is_default ? 'true' : 'false';
+            card.title = avatar.id;
+            card.tabIndex = 0;
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-label', `选择数字人 ${avatar.id}`);
+            card.setAttribute('aria-pressed', 'false');
+            card.addEventListener('click', () => {
+                if (!card.classList.contains('disabled')) selectAvatarFromPicker(avatar.id);
+            });
+            card.addEventListener('keydown', event => {
+                if (event.target !== card || (event.key !== 'Enter' && event.key !== ' ')) return;
+                event.preventDefault();
+                if (!card.classList.contains('disabled')) selectAvatarFromPicker(avatar.id);
+            });
+
+            const image = document.createElement('img');
+            image.src = avatar.preview || `/api/avatar-preview/${encodeURIComponent(avatar.id)}`;
+            image.alt = avatar.id;
+            image.loading = 'lazy';
+            image.decoding = 'async';
+            image.addEventListener('error', () => {
+                image.src = '/assets/joyfox-logo.png';
+                image.style.objectFit = 'contain';
+                image.style.padding = '12px';
+            }, { once: true });
+            card.appendChild(image);
+
+            if (avatar.action_name) {
+                const action = document.createElement('span');
+                action.className = 'avatar-picker-action';
+                action.textContent = avatar.action_name;
+                card.appendChild(action);
+            }
+
+            const idLabel = document.createElement('span');
+            idLabel.className = 'avatar-picker-id';
+            idLabel.textContent = avatar.id;
+            card.appendChild(idLabel);
+
+            const check = document.createElement('span');
+            check.className = 'avatar-picker-check';
+            check.innerHTML = '<i class="bi bi-check-lg"></i>';
+            card.appendChild(check);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'avatar-picker-delete';
+            deleteButton.title = avatar.is_default ? '默认数字人不能删除' : `删除 ${avatar.id}`;
+            deleteButton.setAttribute('aria-label', deleteButton.title);
+            deleteButton.disabled = Boolean(avatar.is_default);
+            deleteButton.innerHTML = '<i class="bi bi-trash3-fill"></i>';
+            deleteButton.addEventListener('click', event => {
+                event.stopPropagation();
+                deleteAvatar(avatar.id, Boolean(avatar.is_default));
+            });
+            card.appendChild(deleteButton);
+            grid.appendChild(card);
+        });
+        grid.setAttribute('aria-busy', 'false');
+        applyAvatarPickerSelection(selectedId);
+        return true;
+    } catch (error) {
+        console.error('Failed to load avatars:', error);
+        grid.replaceChildren(createAvatarPickerMessage('读取失败，请重启 LiveTalking'));
+        grid.setAttribute('aria-busy', 'false');
+        return false;
+    }
+}
+
+function createAvatarPickerMessage(message) {
+    const empty = document.createElement('div');
+    empty.className = 'avatar-picker-empty';
+    empty.textContent = message;
+    return empty;
+}
+
+function applyAvatarPickerSelection(avatarId) {
+    document.getElementById('offerAvatar').value = avatarId || '';
+    document.querySelectorAll('.avatar-picker-item').forEach(button => {
+        const selected = button.dataset.avatarId === avatarId;
+        button.classList.toggle('selected', selected);
+        button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+    if (!pc && !sessionid) {
+        document.getElementById('btnStart').disabled = !avatarId;
+    }
+}
+
+function selectAvatarFromPicker(avatarId) {
+    if (pc || sessionid) {
+        showError('请先断开当前连接，再切换数字人。');
+        return;
+    }
+    applyAvatarPickerSelection(avatarId);
+}
+
+async function deleteAvatar(avatarId, isDefault = false) {
+    if (isDefault) {
+        showError('这是服务启动时的默认数字人，不能直接删除。');
+        return;
+    }
+    if (pc || sessionid) {
+        showError('请先断开当前连接，再删除数字人。');
+        return;
+    }
+    if (!window.confirm(`确定删除数字人“${avatarId}”吗？此操作无法撤销。`)) return;
+
+    const card = Array.from(document.querySelectorAll('.avatar-picker-item'))
+        .find(item => item.dataset.avatarId === avatarId);
+    const deleteButton = card && card.querySelector('.avatar-picker-delete');
+    if (deleteButton) {
+        deleteButton.disabled = true;
+        deleteButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    }
+    try {
+        const response = await fetch(`/api/avatars/${encodeURIComponent(avatarId)}`, {
+            method: 'DELETE',
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload.code !== 0) {
+            throw new Error(payload.msg || `删除失败：HTTP ${response.status}`);
+        }
+        const selectedAvatar = document.getElementById('offerAvatar').value;
+        await loadAvatarOptions(selectedAvatar === avatarId ? '' : selectedAvatar);
+    } catch (error) {
+        showError(error.message || '删除数字人失败。');
+        if (deleteButton) {
+            deleteButton.disabled = false;
+            deleteButton.innerHTML = '<i class="bi bi-trash3-fill"></i>';
+        }
+    }
+}
+
+function setAvatarPickerDisabled(disabled) {
+    document.querySelectorAll('.avatar-picker-item').forEach(card => {
+        card.classList.toggle('disabled', disabled);
+        card.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        card.tabIndex = disabled ? -1 : 0;
+        const deleteButton = card.querySelector('.avatar-picker-delete');
+        if (deleteButton) {
+            deleteButton.disabled = disabled || card.dataset.isDefault === 'true';
+        }
+    });
+}
+
+function showCreatorResult(message, type = '') {
+    const result = document.getElementById('creatorResult');
+    result.textContent = message || '';
+    result.className = `creator-result${type ? ` ${type}` : ''}`;
+}
+
+function refreshAvatarGenerateButton() {
+    const input = document.getElementById('avatarSourceImage');
+    const button = document.getElementById('btnGenerateAvatar');
+    const available = Boolean(
+        avatarCreatorConfig
+        && avatarCreatorConfig.supported
+        && avatarCreatorConfig.api_configured
+        && input.files.length
+        && !avatarGenerationTaskId
+    );
+    button.disabled = !available;
+}
+
+function setAvatarGenerationLocked(locked) {
+    const overlay = document.getElementById('generationOverlay');
+    const page = document.querySelector('.page-shell');
+    overlay.classList.toggle('active', locked);
+    overlay.setAttribute('aria-hidden', locked ? 'false' : 'true');
+    document.body.classList.toggle('generation-locked', locked);
+    avatarGenerationInteractionLocked = locked;
+    if (page) page.inert = locked;
+    document.getElementById('avatarSourceImage').disabled = locked;
+    if (locked) {
+        document.getElementById('btnGenerateAvatar').disabled = true;
+    } else {
+        stopAvatarGenerationVisual();
+        refreshAvatarGenerateButton();
+    }
+}
+
+function resolveGenerationVisualPhase(task = {}) {
+    if (task.primary_ready || task.status === 'completed' || task.status === 'partial') return 'done';
+    if (task.stage === 'avatar' || task.stage === 'avatar_background') return 'avatar';
+    if (task.stage === 'grok' || task.stage === 'grok_background') return 'grok';
+    if (task.stage === 'pending' || task.stage === 'upload') return 'upload';
+    return generationVisual.phase || 'upload';
+}
+
+function renderGenerationVisualProgress(value) {
+    const progress = Math.max(2, Math.min(100, Number(value) || 2));
+    generationVisual.progress = progress;
+    document.getElementById('generationProgressBar').style.width = `${progress}%`;
+    document.getElementById('generationPercent').textContent = progress >= 99.95
+        ? '100%'
+        : `${progress.toFixed(1)}%`;
+
+    const border = document.getElementById('generationBorderProgress');
+    const borderMask = document.getElementById('generationBorderMaskProgress');
+    const borderPulse = document.getElementById('generationBorderPulse');
+    const dashOffset = 100 - progress;
+    border.style.strokeDashoffset = String(dashOffset);
+    borderMask.style.strokeDashoffset = String(dashOffset);
+    const pathLength = border.getTotalLength();
+    const point = border.getPointAtLength(pathLength * progress / 100);
+    borderPulse.setAttribute('cx', point.x.toFixed(2));
+    borderPulse.setAttribute('cy', point.y.toFixed(2));
+}
+
+function generationVisualTarget(now) {
+    const elapsed = Math.max(0, now - generationVisual.phaseStartedAt);
+    const backend = generationVisual.backendProgress;
+    if (generationVisual.phase === 'upload') {
+        return Math.max(Math.min(9, 2 + elapsed / 1000 * 2.2), Math.min(9, backend));
+    }
+    if (generationVisual.phase === 'grok') {
+        // A 5-second 720P Grok clip currently takes about 45 seconds. Since the
+        // clips run concurrently, advance smoothly for ~50 seconds and wait at 78%.
+        const measured = 10 + 68 * Math.pow(Math.min(1, elapsed / 50000), 0.78);
+        return Math.min(78, Math.max(measured, Math.min(78, backend)));
+    }
+    if (generationVisual.phase === 'avatar') {
+        const avatarBuild = 82 + 14 * Math.pow(Math.min(1, elapsed / 18000), 0.82);
+        return Math.min(96, Math.max(avatarBuild, Math.min(96, backend)));
+    }
+    return 100;
+}
+
+function tickAvatarGenerationVisual(now) {
+    if (!generationVisual.active) return;
+    const target = generationVisualTarget(now);
+    const distance = target - generationVisual.progress;
+    if (distance > 0.001) {
+        const step = Math.min(distance, Math.max(0.004, distance * 0.045));
+        renderGenerationVisualProgress(generationVisual.progress + step);
+    }
+    generationVisual.animationFrame = requestAnimationFrame(tickAvatarGenerationVisual);
+}
+
+function beginAvatarGenerationVisual(task = {}) {
+    if (generationVisual.animationFrame) cancelAnimationFrame(generationVisual.animationFrame);
+    const now = performance.now();
+    const phase = resolveGenerationVisualPhase(task);
+    const taskAge = task.created_at
+        ? Math.max(0, Date.now() - Number(task.created_at) * 1000)
+        : 0;
+    generationVisual.active = true;
+    generationVisual.phase = phase;
+    generationVisual.backendProgress = Math.max(2, Number(task.progress) || 2);
+    generationVisual.phaseStartedAt = phase === 'grok'
+        ? now - Math.min(taskAge, 50000)
+        : now;
+    const initial = phase === 'avatar' ? 82 : phase === 'grok' ? 10 : 2;
+    renderGenerationVisualProgress(Math.max(initial, Math.min(96, generationVisual.backendProgress)));
+    generationVisual.animationFrame = requestAnimationFrame(tickAvatarGenerationVisual);
+}
+
+function stopAvatarGenerationVisual() {
+    generationVisual.active = false;
+    if (generationVisual.animationFrame) cancelAnimationFrame(generationVisual.animationFrame);
+    generationVisual.animationFrame = null;
+}
+
+function updateAvatarGenerationOverlay(task) {
+    generationVisual.backendProgress = Math.max(
+        generationVisual.backendProgress,
+        Math.max(2, Math.min(100, Number(task.progress) || 2))
+    );
+    const phase = resolveGenerationVisualPhase(task);
+    if (phase !== generationVisual.phase) {
+        generationVisual.phase = phase;
+        generationVisual.phaseStartedAt = performance.now();
+        if (phase === 'grok') renderGenerationVisualProgress(Math.max(10, generationVisual.progress));
+        if (phase === 'avatar') renderGenerationVisualProgress(Math.max(82, generationVisual.progress));
+    }
+    if (phase === 'done') renderGenerationVisualProgress(100);
+}
+
+async function loadAvatarCreatorConfig() {
+    try {
+        const response = await fetch('/api/i2v-avatar/config', { cache: 'no-store' });
+        const payload = await response.json();
+        if (!response.ok || payload.code !== 0) throw new Error(payload.msg || `HTTP ${response.status}`);
+        avatarCreatorConfig = payload.data || {};
+        if (!avatarCreatorConfig.supported) {
+            showCreatorResult(`当前模型 ${avatarCreatorConfig.model || 'unknown'} 暂不支持自动生成。`, 'error');
+        } else if (!avatarCreatorConfig.api_configured) {
+            showCreatorResult('服务端尚未配置 Grok API，请检查项目根目录 .env。', 'error');
+        }
+    } catch (error) {
+        avatarCreatorConfig = null;
+        showCreatorResult(`读取生成配置失败：${error.message || error}`, 'error');
+    }
+    refreshAvatarGenerateButton();
+}
+
+function handleAvatarSourceImageChange() {
+    const input = document.getElementById('avatarSourceImage');
+    const dropZone = document.getElementById('avatarImageDrop');
+    const preview = document.getElementById('avatarSourcePreview');
+    if (avatarPreviewObjectUrl) {
+        URL.revokeObjectURL(avatarPreviewObjectUrl);
+        avatarPreviewObjectUrl = null;
+    }
+    if (input.files.length) {
+        avatarPreviewObjectUrl = URL.createObjectURL(input.files[0]);
+        preview.src = avatarPreviewObjectUrl;
+        dropZone.classList.add('has-preview');
+        showCreatorResult('');
+    } else {
+        preview.removeAttribute('src');
+        dropZone.classList.remove('has-preview');
+    }
+    refreshAvatarGenerateButton();
+}
+
+async function startAvatarGeneration() {
+    const input = document.getElementById('avatarSourceImage');
+    const image = input.files[0];
+    if (!image) {
+        showCreatorResult('请先选择一张人物图片。', 'error');
+        return;
+    }
+    if (pc || sessionid) {
+        showCreatorResult('请先断开当前数字人连接，再开始生成新形象。', 'error');
+        return;
+    }
+    if (!avatarCreatorConfig || !avatarCreatorConfig.api_configured) {
+        showCreatorResult('Grok API 尚未配置，无法开始生成。', 'error');
+        return;
+    }
+    avatarGenerationTaskId = 'uploading';
+    avatarPrimaryReadyTaskId = null;
+    beginAvatarGenerationVisual({ stage: 'upload', progress: 2 });
+    setAvatarGenerationLocked(true);
+    updateAvatarGenerationOverlay({ progress: 2, message: '正在上传并按原比例处理为 720P…' });
+    showCreatorResult('');
+    try {
+        const formData = new FormData();
+        const selectedMode = document.querySelector(
+            'input[name="avatarGenerationMode"]:checked'
+        );
+        const generationMode = selectedMode ? selectedMode.value : 'lite';
+        formData.append('mode', generationMode);
+        formData.append('image', image, image.name);
+        const response = await fetch('/api/i2v-avatar/task', { method: 'POST', body: formData });
+        const payload = await response.json();
+        if (!response.ok || payload.code !== 0) throw new Error(payload.msg || `HTTP ${response.status}`);
+        avatarGenerationTaskId = payload.data.task_id;
+        updateAvatarGenerationOverlay(payload.data);
+        pollAvatarGeneration(avatarGenerationTaskId);
+    } catch (error) {
+        avatarGenerationTaskId = null;
+        setAvatarGenerationLocked(false);
+        showCreatorResult(`创建生成任务失败：${error.message || error}`, 'error');
+    }
+}
+
+async function pollAvatarGeneration(taskId) {
+    clearTimeout(avatarGenerationPollTimer);
+    try {
+        const response = await fetch(`/api/i2v-avatar/task/${encodeURIComponent(taskId)}`, {
+            cache: 'no-store',
+        });
+        const payload = await response.json();
+        if (!response.ok || payload.code !== 0) throw new Error(payload.msg || `HTTP ${response.status}`);
+        const task = payload.data;
+        updateAvatarGenerationOverlay(task);
+        if (task.primary_ready && avatarPrimaryReadyTaskId !== taskId) {
+            const firstAvatarId = (task.avatar_ids || [])[0] || task.avatar_id;
+            const loaded = await loadAvatarOptions(firstAvatarId);
+            avatarPrimaryReadyTaskId = taskId;
+            setAvatarGenerationLocked(false);
+            showCreatorResult(
+                loaded
+                    ? `首个数字人 ${firstAvatarId} 已就绪并已选中，其余动作正在后台生成。`
+                    : `首个数字人 ${firstAvatarId} 已就绪，其余动作正在后台生成。`,
+                'success'
+            );
+        }
+        if (task.primary_ready && task.status === 'running') {
+            const total = Number(task.prompt_count)
+                || (Array.isArray(task.planned_avatar_ids) ? task.planned_avatar_ids.length : 0);
+            const completedClips = Number(task.completed_clips) || 0;
+            const generatedAvatars = Number(task.generated_avatar_count) || 0;
+            const buildingAvatar = task.stage === 'avatar' || task.stage === 'avatar_background'
+                || task.stage === 'avatar_worker';
+            showCreatorResult(
+                `首个数字人已可使用；视频进度 ${completedClips}/${total}`
+                + `，数字人进度 ${generatedAvatars}/${total}`
+                + `${buildingAvatar && task.current_action ? `，正在构建：${task.current_action}` : ''}。`,
+                'success'
+            );
+        }
+        if (task.status === 'completed') {
+            const firstAvatarId = (task.avatar_ids || [])[0] || task.avatar_id;
+            const loaded = await loadAvatarOptions(firstAvatarId);
+            const avatarCount = (task.avatar_ids || []).length;
+            avatarGenerationTaskId = null;
+            avatarPrimaryReadyTaskId = null;
+            setAvatarGenerationLocked(false);
+            showCreatorResult(
+                loaded
+                    ? `已按动作顺序生成 ${avatarCount} 个数字人，并已选中 ${firstAvatarId}。`
+                    : `已生成 ${avatarCount} 个数字人，请刷新列表后选择。`,
+                'success'
+            );
+            return;
+        }
+        if (task.status === 'partial') {
+            const firstAvatarId = (task.avatar_ids || [])[0] || task.avatar_id;
+            await loadAvatarOptions(firstAvatarId);
+            avatarGenerationTaskId = null;
+            avatarPrimaryReadyTaskId = null;
+            setAvatarGenerationLocked(false);
+            showCreatorResult(
+                `${task.message}。已完成的数字人可以使用；错误：${task.error || '未知错误'}`,
+                'error'
+            );
+            return;
+        }
+        if (task.status === 'failed') {
+            avatarGenerationTaskId = null;
+            avatarPrimaryReadyTaskId = null;
+            setAvatarGenerationLocked(false);
+            showCreatorResult(`生成失败：${task.error || task.message}`, 'error');
+            return;
+        }
+        avatarGenerationPollTimer = setTimeout(() => pollAvatarGeneration(taskId), 2000);
+    } catch (error) {
+        updateAvatarGenerationOverlay({
+            progress: Number(document.getElementById('generationPercent').textContent.replace('%', '')) || 2,
+            message: `暂时无法读取进度，正在重试：${error.message || error}`,
+        });
+        avatarGenerationPollTimer = setTimeout(() => pollAvatarGeneration(taskId), 3000);
+    }
+}
+
+async function resumeActiveAvatarGeneration() {
+    try {
+        const response = await fetch('/api/i2v-avatar/active', { cache: 'no-store' });
+        const payload = await response.json();
+        const task = payload.code === 0 && payload.data ? payload.data.task : null;
+        if (!response.ok || !task) return;
+        avatarGenerationTaskId = task.task_id;
+        if (task.primary_ready) {
+            avatarPrimaryReadyTaskId = task.task_id;
+            await loadAvatarOptions((task.avatar_ids || [])[0] || task.avatar_id);
+            setAvatarGenerationLocked(false);
+            showCreatorResult(task.message || '首个数字人已就绪，其余正在后台生成。', 'success');
+        } else {
+            beginAvatarGenerationVisual(task);
+            setAvatarGenerationLocked(true);
+        }
+        updateAvatarGenerationOverlay(task);
+        pollAvatarGeneration(task.task_id);
+    } catch (error) {
+        console.warn('Failed to resume Avatar generation:', error);
+    }
+}
+
+document.getElementById('avatarSourceImage').addEventListener('change', handleAvatarSourceImageChange);
+window.addEventListener('beforeunload', event => {
+    if (!avatarGenerationInteractionLocked) return;
+    event.preventDefault();
+    event.returnValue = '';
+});
+
+function showAvatarPlaceholder() {
+    const video = document.getElementById('video');
+    video.pause();
+    video.srcObject = null;
+    video.poster = '/assets/joyfox-logo.png';
+    video.load();
+}
+
+function setMiniCPMStatus(status, text) {
+    document.getElementById('minicpmStatus').textContent = status;
+    if (text !== undefined) document.getElementById('minicpmText').textContent = text;
+}
+
+function setLocalCameraPreview(stream, message) {
+    const localVideo = document.getElementById('localVideo');
+    const status = document.getElementById('localCameraStatus');
+    const hasCamera = Boolean(stream && stream.getVideoTracks().length);
+    localVideo.srcObject = hasCamera ? stream : null;
+    status.style.display = hasCamera ? 'none' : 'flex';
+    status.textContent = message || '摄像头未开启';
+    if (hasCamera) localVideo.play().catch(() => {});
+}
+
+function connectMiniCPMEvents(sid) {
+    if (minicpmEvents) minicpmEvents.close();
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    minicpmEvents = new WebSocket(`${proto}//${location.host}/api/minicpmo/events/${sid}`);
+    minicpmEvents.onmessage = event => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'connected' || msg.type === 'connecting') setMiniCPMStatus('连接模型中');
+        else if (msg.type === 'queued') setMiniCPMStatus(`排队中 #${msg.position || '-'}`);
+        else if (msg.type === 'ready' || msg.type === 'listening') setMiniCPMStatus('正在聆听');
+        else if (msg.type === 'speaking') setMiniCPMStatus('正在说话');
+        else if (msg.type === 'resetting') setMiniCPMStatus('正在自动恢复', msg.message);
+        else if (msg.type === 'text') setMiniCPMStatus('正在说话', msg.text);
+        else if (msg.type === 'error') setMiniCPMStatus('错误', msg.message || 'Joyfox-FullDuplex 服务异常');
+    };
+    minicpmEvents.onerror = () => setMiniCPMStatus('状态通道断开');
+}
+
+function downsampleFloat32(input, inputRate, outputRate) {
+    if (inputRate === outputRate) return new Float32Array(input);
+    const ratio = inputRate / outputRate;
+    const output = new Float32Array(Math.floor(input.length / ratio));
+    for (let index = 0; index < output.length; index++) {
+        const start = Math.floor(index * ratio);
+        const end = Math.min(input.length, Math.floor((index + 1) * ratio));
+        let total = 0;
+        for (let offset = start; offset < end; offset++) total += input[offset];
+        output[index] = total / Math.max(1, end - start);
+    }
+    return output;
+}
+
+async function startMiniCPMInput(sid) {
+    if (!minicpmEnabled || !userMediaStream) return;
+    if (minicpmInput) minicpmInput.close();
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    minicpmInput = new WebSocket(`${proto}//${location.host}/api/minicpmo/input/${sid}`);
+    minicpmInput.binaryType = 'arraybuffer';
+    minicpmInput.onopen = async () => {
+        const audioTrack = userMediaStream.getAudioTracks()[0];
+        if (audioTrack) {
+            microphoneContext = new (window.AudioContext || window.webkitAudioContext)();
+            await microphoneContext.resume();
+            const source = microphoneContext.createMediaStreamSource(new MediaStream([audioTrack]));
+            microphoneProcessor = microphoneContext.createScriptProcessor(4096, 1, 1);
+            const silentGain = microphoneContext.createGain();
+            silentGain.gain.value = 0;
+            microphoneProcessor.onaudioprocess = event => {
+                if (!minicpmInput || minicpmInput.readyState !== WebSocket.OPEN) return;
+                const pcm16k = downsampleFloat32(
+                    event.inputBuffer.getChannelData(0), microphoneContext.sampleRate, 16000
+                );
+                minicpmInput.send(pcm16k.buffer);
+            };
+            source.connect(microphoneProcessor);
+            microphoneProcessor.connect(silentGain);
+            silentGain.connect(microphoneContext.destination);
+        }
+
+        const videoTrack = userMediaStream.getVideoTracks()[0];
+        if (videoTrack) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const context = canvas.getContext('2d');
+            cameraTimer = setInterval(() => {
+                const localVideo = document.getElementById('localVideo');
+                if (!localVideo.videoWidth || minicpmInput.readyState !== WebSocket.OPEN) return;
+                canvas.height = Math.max(1, Math.round(640 * localVideo.videoHeight / localVideo.videoWidth));
+                context.drawImage(localVideo, 0, 0, canvas.width, canvas.height);
+                const jpeg = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+                minicpmInput.send(JSON.stringify({type: 'video', data: jpeg}));
+            }, 500);
+        }
+    };
+    minicpmInput.onerror = () => setMiniCPMStatus('输入通道异常', '摄像头/麦克风 WebSocket 连接失败');
+}
+
+function stopMiniCPMInput() {
+    if (cameraTimer) { clearInterval(cameraTimer); cameraTimer = null; }
+    if (microphoneProcessor) {
+        microphoneProcessor.onaudioprocess = null;
+        microphoneProcessor.disconnect();
+        microphoneProcessor = null;
+    }
+    if (microphoneContext) {
+        microphoneContext.close().catch(() => {});
+        microphoneContext = null;
+    }
+    if (minicpmInput) {
+        minicpmInput.close();
+        minicpmInput = null;
+    }
 }
 
 function showError(msg) {
@@ -255,21 +1599,30 @@ function negotiate() {
         return new Promise(resolve => {
             if (pc.iceGatheringState === 'complete') resolve();
             else {
-                const check = () => { if (pc.iceGatheringState === 'complete') { pc.removeEventListener('icegatheringstatechange', check); resolve(); } };
+                const check = () => {
+                    if (pc.iceGatheringState === 'complete') {
+                        pc.removeEventListener('icegatheringstatechange', check);
+                        resolve();
+                    }
+                };
                 pc.addEventListener('icegatheringstatechange', check);
             }
         });
     }).then(() => {
         const offer = pc.localDescription;
+        if (usingTcpTurn && !offer.sdp.includes(' typ relay')) {
+            throw new Error('未建立远程媒体通道：请在 VS Code“端口”面板转发远程 3478/TCP，然后重试。');
+        }
         const body = {
             sdp: offer.sdp,
             type: offer.type,
             avatar: document.getElementById('offerAvatar').value || undefined,
-            refaudio: document.getElementById('offerRefAudio').value || undefined,
-            reftext: document.getElementById('offerRefText').value || undefined,
         };
         return fetch('/offer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    }).then(res => res.json()).then(answer => {
+    }).then(res => {
+        if (!res.ok) throw new Error(`Offer request failed: HTTP ${res.status}`);
+        return res.json();
+    }).then(answer => {
         // 检查服务端返回的错误码
         if (answer.code && answer.code !== 0) {
             throw new Error(answer.msg || 'Unknown server error');
@@ -279,137 +1632,218 @@ function negotiate() {
         }
         if (answer.sessionid) setSessionId(answer.sessionid);
         return pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answer.sdp }));
-    }).catch(e => {
-        const msg = e.message || String(e);
-        showError(msg);
-        // 出错时重置连接状态
-        if (pc) { pc.close(); pc = null; }
-        updateStatus(false);
-        setSessionId(null);
-        document.getElementById('btnStart').style.display = 'inline-block';
-        document.getElementById('btnStop').style.display = 'none';
     });
 }
 
-function start() {
-    document.getElementById('offerError').style.display = 'none';
-    const config = { sdpSemantics: 'unified-plan' };
-    if (document.getElementById('use-stun')?.checked) {
-        config.iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+async function acquireLocalMedia() {
+    const audioConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1,
+    };
+    const videoConstraints = {
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        frameRate: { ideal: 15, max: 24 },
+        facingMode: 'user',
+    };
+    try {
+        userMediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: audioConstraints, video: videoConstraints,
+        });
+        setLocalCameraPreview(userMediaStream);
+        setMiniCPMStatus('摄像头和麦克风已开启', 'Joyfox-FullDuplex 将同时理解画面与语音。');
+    } catch (cameraError) {
+        console.warn('Camera startup failed, retrying audio-only:', cameraError);
+        try {
+            userMediaStream = await navigator.mediaDevices.getUserMedia({
+                audio: audioConstraints, video: false,
+            });
+            setLocalCameraPreview(null, '摄像头不可用，当前为纯语音模式');
+            setMiniCPMStatus('纯语音模式', '摄像头不可用，数字人仍可进行语音对话。');
+        } catch (audioError) {
+            console.warn('Microphone startup also failed:', audioError);
+            userMediaStream = new MediaStream();
+            setLocalCameraPreview(null, '摄像头和麦克风不可用');
+            setMiniCPMStatus('媒体不可用', '摄像头和麦克风不可用，仅保留数字人待机画面。');
+        }
     }
-    pc = new RTCPeerConnection(config);
-    pc.addEventListener('track', evt => {
-        if (evt.track.kind === 'video') document.getElementById('video').srcObject = evt.streams[0];
-        else document.getElementById('audio').srcObject = evt.streams[0];
-    });
-    pc.addEventListener('connectionstatechange', () => {
-        if (pc.connectionState === 'connected') updateStatus(true);
-        else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') { updateStatus(false); setSessionId(null); }
-    });
-    negotiate();
-    document.getElementById('btnStart').style.display = 'none';
-    document.getElementById('btnStop').style.display = 'inline-block';
+}
+
+async function start() {
+    const avatarInput = document.getElementById('offerAvatar');
+    if (!avatarInput.value) {
+        showError('请先点击一张图片选择数字人。');
+        return;
+    }
+    showAvatarPlaceholder();
+    document.getElementById('offerError').style.display = 'none';
+    const startButton = document.getElementById('btnStart');
+    startButton.disabled = true;
+    startButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 连接中';
+    setAvatarPickerDisabled(true);
+    updateConnectingStatus();
+
+    try {
+        const configResponse = await fetch('/api/admin/config');
+        if (!configResponse.ok) throw new Error(`Config request failed: HTTP ${configResponse.status}`);
+        const configPayload = await configResponse.json();
+        const appConfig = configPayload.data && configPayload.data.config
+            ? configPayload.data.config : {};
+        minicpmEnabled = Boolean(appConfig.minicpmo_enabled);
+
+        const localMediaPromise = minicpmEnabled ? acquireLocalMedia() : Promise.resolve();
+        if (!minicpmEnabled) {
+            setLocalCameraPreview(null, 'Joyfox-FullDuplex 模式未启用');
+            setMiniCPMStatus('Joyfox-FullDuplex 未启用', '当前仅保留数字人待机画面。');
+        }
+        const config = { sdpSemantics: 'unified-plan' };
+        usingTcpTurn = false;
+        const localTunnelHosts = ['127.0.0.1', 'localhost', '::1'];
+        if (localTunnelHosts.includes(location.hostname) && appConfig.turn_url) {
+            const turnHost = location.hostname === '::1' ? '[::1]' : location.hostname;
+            const turnUrl = String(appConfig.turn_url).replace(
+                /^turn:[^:]+:\d+/,
+                `turn:${turnHost}:3478`
+            );
+            config.iceServers = [{
+                urls: turnUrl,
+                username: appConfig.turn_username,
+                credential: appConfig.turn_credential,
+            }];
+            // HTTP is entering through a TCP port forward, so host/srflx UDP
+            // candidates cannot reach the browser. Force the local TCP TURN
+            // path instead of waiting on candidates which can never work.
+            config.iceTransportPolicy = 'relay';
+            usingTcpTurn = true;
+            setMiniCPMStatus('正在建立媒体链路', '正在通过 3478/TCP 建立数字人连接…');
+        }
+
+        pc = new RTCPeerConnection(config);
+        remoteMediaStream = new MediaStream();
+        pc.addEventListener('iceconnectionstatechange', () => {
+            console.log('ICE connection state:', pc && pc.iceConnectionState);
+        });
+        pc.addEventListener('track', evt => {
+            remoteMediaStream.addTrack(evt.track);
+            if (evt.track.kind === 'video') {
+                const video = document.getElementById('video');
+                video.srcObject = remoteMediaStream;
+                video.play().catch(() => {});
+            } else {
+                const audio = document.getElementById('audio');
+                audio.srcObject = remoteMediaStream;
+                audio.play().catch(() => {});
+            }
+        });
+        pc.addEventListener('connectionstatechange', async () => {
+            if (!pc) return;
+            if (pc.connectionState === 'connected') {
+                clearTimeout(connectionTimer);
+                connectionTimer = null;
+                updateStatus(true);
+                if (minicpmEnabled && sessionid) {
+                    await localMediaPromise;
+                    connectMiniCPMEvents(sessionid);
+                    startMiniCPMInput(sessionid);
+                }
+                startButton.style.display = 'none';
+                document.getElementById('btnStop').style.display = 'inline-block';
+            } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                showError(usingTcpTurn
+                    ? '远程媒体连接失败：请确认 VS Code 已转发远程 3478/TCP。'
+                    : '数字人连接失败，请检查服务终端日志。');
+                stop();
+            }
+        });
+
+        connectionTimer = setTimeout(() => {
+            if (pc && pc.connectionState !== 'connected') {
+                showError(usingTcpTurn
+                    ? '远程连接超时：请确认 VS Code 已转发远程 3478/TCP。'
+                    : '数字人连接超时，请检查服务终端日志。');
+                stop();
+            }
+        }, 30000);
+        await negotiate();
+    } catch (e) {
+        showError(e.message || String(e));
+        stop();
+    }
 }
 
 function stop() {
+    clearTimeout(connectionTimer);
+    connectionTimer = null;
     if (pc) { pc.close(); pc = null; }
+    if (minicpmEvents) { minicpmEvents.close(); minicpmEvents = null; }
+    stopMiniCPMInput();
+    if (userMediaStream) {
+        userMediaStream.getTracks().forEach(track => track.stop());
+        userMediaStream = null;
+    }
+    remoteMediaStream = null;
+    setLocalCameraPreview(null, '连接后显示摄像头画面');
     updateStatus(false);
     setSessionId(null);
-    document.getElementById('btnStart').style.display = 'inline-block';
-    document.getElementById('btnStop').style.display = 'none';
-    document.getElementById('video').srcObject = null;
+    minicpmEnabled = false;
+    usingTcpTurn = false;
+    resetConnectionControls();
+    showAvatarPlaceholder();
     document.getElementById('audio').srcObject = null;
+    setMiniCPMStatus('未连接', '连接后允许摄像头和麦克风权限，即可开始全模态实时对话。');
 }
 
-// ─── Text ──────────────────────────────────────────────────
-function sendText() {
-    const text = document.getElementById('txtMessage').value;
-    const type = document.getElementById('txtType').value;
-    const interrupt = document.getElementById('txtInterrupt').checked;
-    if (!text || !sessionid) return alert('请先连接 WebRTC');
-
-    fetch('/human', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, type, interrupt, sessionid: String(sessionid) }),
-    }).then(r => r.json()).then(d => {
-        console.log('human:', d);
-        document.getElementById('txtMessage').value = '';
-    });
-}
-
-// ─── Audio Upload ──────────────────────────────────────────
-function uploadAudio() {
-    const file = document.getElementById('audioFile').files[0];
-    if (!file || !sessionid) return alert('请先连接 WebRTC 并选择音频文件');
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('sessionid', String(sessionid));
-
-    fetch('/humanaudio', { method: 'POST', body: formData })
-        .then(r => r.json()).then(d => console.log('humanaudio:', d));
-}
-
-// ─── Interrupt ─────────────────────────────────────────────
-function interrupt() {
-    if (!sessionid) return;
-    fetch('/interrupt_talk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionid: String(sessionid) }),
-    }).then(r => r.json()).then(d => console.log('interrupt:', d));
-}
-
-// ─── Speaking Status ───────────────────────────────────────
-function checkSpeaking() {
-    if (!sessionid) return alert('请先连接 WebRTC');
-    fetch('/is_speaking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionid: String(sessionid) }),
-    }).then(r => r.json()).then(d => alert('Speaking: ' + JSON.stringify(d.data)));
-}
-
-// ─── Recording ─────────────────────────────────────────────
-let recording = false;
-function toggleRecord() {
-    if (!sessionid) return alert('请先连接 WebRTC');
-    const btn = document.getElementById('btnRecToggle');
-    const type = recording ? 'end_record' : 'start_record';
-    fetch('/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, sessionid: String(sessionid) }),
-    }).then(r => r.json()).then(d => {
-        console.log(type + ':', d);
-        recording = !recording;
-        if (recording) {
-            btn.className = 'btn-danger-custom btn-sm';
-            btn.innerHTML = '<i class="bi bi-stop-circle"></i> 停止录制';
-            document.getElementById('btnDownload').disabled = true;
-        } else {
-            btn.className = 'btn-outline-custom btn-sm';
-            btn.innerHTML = '<i class="bi bi-record-circle"></i> 开始录制';
-            document.getElementById('btnDownload').disabled = false;
+async function disconnect() {
+    const closingSessionId = sessionid;
+    stop();
+    const startButton = document.getElementById('btnStart');
+    startButton.disabled = true;
+    startButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 正在释放模型';
+    setAvatarPickerDisabled(true);
+    try {
+        if (closingSessionId) {
+            const response = await fetch(`/api/session/${encodeURIComponent(closingSessionId)}/disconnect`, {
+                method: 'POST',
+            });
+            const result = await response.json();
+            if (!response.ok || result.code !== 0) {
+                throw new Error(result.msg || `HTTP ${response.status}`);
+            }
         }
-    });
-}
-function downloadRecord() {
-    if (!sessionid) return;
-    window.open('/record/' + sessionid, '_blank');
+        setMiniCPMStatus('已断开', 'Joyfox-FullDuplex Worker 已释放，可以重新连接。');
+    } catch (error) {
+        showError(`释放模型会话失败：${error.message || error}`);
+    } finally {
+        resetConnectionControls();
+    }
 }
 
-// ─── Audiotype ─────────────────────────────────────────────
-function setAudiotype() {
-    if (!sessionid) return alert('请先连接 WebRTC');
-    const val = parseInt(document.getElementById('audiotypeVal').value) || 0;
-    fetch('/set_audiotype', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audiotype: val, sessionid: String(sessionid) }),
-    }).then(r => r.json()).then(d => console.log('set_audiotype:', d));
+async function clearConnections() {
+    if (!window.confirm('将断开并清理所有数字人连接，是否继续？')) return;
+    const button = document.getElementById('btnClearConnections');
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 清理中';
+    stop();
+    try {
+        const response = await fetch('/api/admin/clear-connections', { method: 'POST' });
+        const result = await response.json();
+        if (!response.ok || result.code !== 0) {
+            throw new Error(result.msg || `HTTP ${response.status}`);
+        }
+        setMiniCPMStatus('连接已清空', '所有连接状态已清理，可以重新点击开始连接。');
+    } catch (error) {
+        showError(`清空连接失败：${error.message || error}`);
+    } finally {
+        button.disabled = false;
+        button.innerHTML = '<i class="bi bi-trash3"></i> 清空连接';
+    }
 }
+
+loadAvatarOptions();
+loadAvatarCreatorConfig();
+resumeActiveAvatarGeneration();
 
 </script>
 </body>

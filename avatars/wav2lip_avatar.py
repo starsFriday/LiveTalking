@@ -42,7 +42,7 @@ from avatars.base_avatar import BaseAvatar
 
 from tqdm import tqdm
 from utils.logger import logger
-from utils.image import read_imgs, mirror_index
+from utils.image import read_imgs, mirror_index, remove_legacy_livetalking_watermark
 from utils.device import initialize_device
 from registry import register
 
@@ -81,7 +81,7 @@ def load_avatar(avatar_id):
     frame_list_cycle = None
     input_img_list = glob.glob(os.path.join(full_imgs_path, '*.[jpJP][pnPN]*[gG]'))
     input_img_list = sorted(input_img_list, key=lambda x: int(os.path.splitext(os.path.basename(x))[0]))
-    frame_list_cycle = read_imgs(input_img_list)
+    frame_list_cycle = remove_legacy_livetalking_watermark(read_imgs(input_img_list))
     input_face_list = glob.glob(os.path.join(face_imgs_path, '*.[jpJP][pnPN]*[gG]'))
     input_face_list = sorted(input_face_list, key=lambda x: int(os.path.splitext(os.path.basename(x))[0]))
     face_list_cycle = read_imgs(input_face_list)
@@ -146,4 +146,3 @@ class LipReal(BaseAvatar):
         res_frame = cv2.resize(pred_frame.astype(np.uint8),(x2-x1,y2-y1))
         combine_frame[y1:y2, x1:x2] = res_frame
         return combine_frame
-
