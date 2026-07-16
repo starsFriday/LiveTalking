@@ -348,6 +348,53 @@
             padding-top: 14px;
             border-top: 1px solid var(--line);
         }
+        .search-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            margin: 0;
+            padding: 7px 12px;
+            color: #4d6480;
+            cursor: pointer;
+            user-select: none;
+            background: rgba(255,255,255,.62);
+            border: 1px solid rgba(95,145,232,.3);
+            border-radius: 10px;
+            transition: border-color .2s, box-shadow .2s, opacity .2s;
+        }
+        .search-toggle:hover { border-color: rgba(76,153,235,.68); }
+        .search-toggle:has(input:checked) {
+            color: #2366b1;
+            border-color: rgba(72,151,235,.66);
+            box-shadow: 0 0 0 3px rgba(83,151,237,.1), 0 7px 18px rgba(71,121,197,.12);
+        }
+        .search-toggle:has(input:disabled) { cursor: not-allowed; opacity: .48; }
+        .search-toggle input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .search-toggle-track {
+            position: relative;
+            width: 32px;
+            height: 18px;
+            flex: 0 0 auto;
+            background: #c5d1dd;
+            border-radius: 999px;
+            transition: background .2s;
+        }
+        .search-toggle-track::after {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 12px;
+            height: 12px;
+            content: "";
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(40,63,88,.28);
+            transition: transform .2s;
+        }
+        .search-toggle input:checked + .search-toggle-track { background: linear-gradient(90deg, #5d8fea, #47b8da); }
+        .search-toggle input:checked + .search-toggle-track::after { transform: translateX(14px); }
+        .search-toggle-copy { font-size: .82rem; font-weight: 700; white-space: nowrap; }
         .assistant-status {
             background: linear-gradient(135deg, rgba(225,241,255,.88), rgba(239,230,255,.82));
             border: 1px solid rgba(95,145,232,.16);
@@ -805,6 +852,11 @@
                         <button class="btn-primary-custom" id="btnStart" onclick="start()" disabled><i class="bi bi-play-fill"></i> 开始连接</button>
                         <button class="btn-danger-custom" id="btnStop" onclick="disconnect()" style="display:none;"><i class="bi bi-stop-fill"></i> 断开连接</button>
                         <button class="btn-outline-custom" id="btnClearConnections" onclick="clearConnections()"><i class="bi bi-trash3"></i> 清空连接</button>
+                        <label class="search-toggle" id="webSearchLabel" title="仅在天气、新闻、价格等时效问题中调用 Google Search">
+                            <input id="webSearchToggle" type="checkbox" disabled>
+                            <span class="search-toggle-track" aria-hidden="true"></span>
+                            <span class="search-toggle-copy"><i class="bi bi-globe2"></i> 联网搜索</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -913,6 +965,10 @@ let connectionTimer = null;
 let userMediaStream = null;
 let minicpmEvents = null;
 let minicpmEnabled = false;
+let webSearchAvailable = false;
+let assistantTimezone = 'Asia/Shanghai';
+let assistantClockOffsetMs = 0;
+let runtimeConfig = null;
 let remoteMediaStream = null;
 let minicpmInput = null;
 let microphoneContext = null;
@@ -957,7 +1013,32 @@ function resetConnectionControls() {
     startButton.innerHTML = '<i class="bi bi-play-fill"></i> 开始连接';
     startButton.style.display = 'inline-block';
     document.getElementById('btnStop').style.display = 'none';
+    setSearchToggleLocked(false);
     setAvatarPickerDisabled(false);
+}
+
+function setSearchToggleLocked(locked) {
+    const toggle = document.getElementById('webSearchToggle');
+    toggle.disabled = locked || !webSearchAvailable;
+    document.getElementById('webSearchLabel').title = webSearchAvailable
+        ? (locked ? '请先断开连接再切换联网搜索' : '仅在天气、新闻、价格等时效问题中调用 Google Search')
+        : '联网搜索不可用，请检查项目 .env 中的 GEMINI_API_KEY';
+}
+
+async function loadRuntimeConfig(force = false) {
+    if (runtimeConfig && !force) return runtimeConfig;
+    const response = await fetch('/api/admin/config', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Config request failed: HTTP ${response.status}`);
+    const payload = await response.json();
+    runtimeConfig = payload.data && payload.data.config ? payload.data.config : {};
+    minicpmEnabled = Boolean(runtimeConfig.minicpmo_enabled);
+    webSearchAvailable = Boolean(runtimeConfig.web_search_available);
+    assistantTimezone = runtimeConfig.assistant_timezone || 'Asia/Shanghai';
+    if (Number.isFinite(Number(runtimeConfig.server_time_utc_ms))) {
+        assistantClockOffsetMs = Number(runtimeConfig.server_time_utc_ms) - Date.now();
+    }
+    setSearchToggleLocked(Boolean(pc || sessionid));
+    return runtimeConfig;
 }
 
 function setSessionId(sid) {
@@ -1501,6 +1582,8 @@ function connectMiniCPMEvents(sid) {
         else if (msg.type === 'ready' || msg.type === 'listening') setMiniCPMStatus('正在聆听');
         else if (msg.type === 'speaking') setMiniCPMStatus('正在说话');
         else if (msg.type === 'barge_in') setMiniCPMStatus('已打断，正在聆听');
+        else if (msg.type === 'search_injecting') setMiniCPMStatus('资料已返回', '正在交给 Joyfox-FullDuplex 组织回答。');
+        else if (msg.type === 'search_error') setMiniCPMStatus('联网工具不可用', msg.message);
         else if (msg.type === 'resetting') setMiniCPMStatus('正在自动恢复', msg.message);
         else if (msg.type === 'text') setMiniCPMStatus('正在说话', msg.text);
         else if (msg.type === 'error') setMiniCPMStatus('错误', msg.message || 'Joyfox-FullDuplex 服务异常');
@@ -1520,6 +1603,32 @@ function downsampleFloat32(input, inputRate, outputRate) {
         output[index] = total / Math.max(1, end - start);
     }
     return output;
+}
+
+function formatAssistantClock(date = new Date(Date.now() + assistantClockOffsetMs)) {
+    try {
+        return new Intl.DateTimeFormat('zh-CN', {
+            timeZone: assistantTimezone,
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            weekday: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hourCycle: 'h23',
+        }).format(date) + `  ${assistantTimezone}`;
+    } catch (_) {
+        return date.toLocaleString('zh-CN', { hour12: false });
+    }
+}
+
+function drawAssistantClock(context, canvas) {
+    const clock = formatAssistantClock();
+    context.save();
+    context.font = '600 18px system-ui, sans-serif';
+    const width = Math.min(canvas.width - 20, context.measureText(clock).width + 24);
+    context.fillStyle = 'rgba(8, 25, 48, .72)';
+    context.fillRect(10, 10, width, 32);
+    context.fillStyle = '#d9f4ff';
+    context.textBaseline = 'middle';
+    context.fillText(clock, 22, 26, width - 20);
+    context.restore();
 }
 
 async function startMiniCPMInput(sid) {
@@ -1549,21 +1658,28 @@ async function startMiniCPMInput(sid) {
             silentGain.connect(microphoneContext.destination);
         }
 
-        const videoTrack = userMediaStream.getVideoTracks()[0];
-        if (videoTrack) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 640;
-            canvas.height = 480;
-            const context = canvas.getContext('2d');
-            cameraTimer = setInterval(() => {
-                const localVideo = document.getElementById('localVideo');
-                if (!localVideo.videoWidth || minicpmInput.readyState !== WebSocket.OPEN) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 480;
+        const context = canvas.getContext('2d');
+        cameraTimer = setInterval(() => {
+            if (!minicpmInput || minicpmInput.readyState !== WebSocket.OPEN) return;
+            const localVideo = document.getElementById('localVideo');
+            if (localVideo.videoWidth) {
                 canvas.height = Math.max(1, Math.round(640 * localVideo.videoHeight / localVideo.videoWidth));
                 context.drawImage(localVideo, 0, 0, canvas.width, canvas.height);
-                const jpeg = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
-                minicpmInput.send(JSON.stringify({type: 'video', data: jpeg}));
-            }, 500);
-        }
+            } else {
+                canvas.height = 360;
+                const background = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+                background.addColorStop(0, '#e3f2ff');
+                background.addColorStop(1, '#eee8ff');
+                context.fillStyle = background;
+                context.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            drawAssistantClock(context, canvas);
+            const jpeg = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+            minicpmInput.send(JSON.stringify({type: 'video', data: jpeg}));
+        }, 500);
     };
     minicpmInput.onerror = () => setMiniCPMStatus('输入通道异常', '摄像头/麦克风 WebSocket 连接失败');
 }
@@ -1618,6 +1734,7 @@ function negotiate() {
             sdp: offer.sdp,
             type: offer.type,
             avatar: document.getElementById('offerAvatar').value || undefined,
+            web_search: webSearchAvailable && document.getElementById('webSearchToggle').checked,
         };
         return fetch('/offer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     }).then(res => {
@@ -1684,15 +1801,12 @@ async function start() {
     startButton.disabled = true;
     startButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 连接中';
     setAvatarPickerDisabled(true);
+    setSearchToggleLocked(true);
     updateConnectingStatus();
 
     try {
-        const configResponse = await fetch('/api/admin/config');
-        if (!configResponse.ok) throw new Error(`Config request failed: HTTP ${configResponse.status}`);
-        const configPayload = await configResponse.json();
-        const appConfig = configPayload.data && configPayload.data.config
-            ? configPayload.data.config : {};
-        minicpmEnabled = Boolean(appConfig.minicpmo_enabled);
+        const appConfig = await loadRuntimeConfig();
+        setSearchToggleLocked(true);
 
         const localMediaPromise = minicpmEnabled ? acquireLocalMedia() : Promise.resolve();
         if (!minicpmEnabled) {
@@ -1788,7 +1902,6 @@ function stop() {
     setLocalCameraPreview(null, '连接后显示摄像头画面');
     updateStatus(false);
     setSessionId(null);
-    minicpmEnabled = false;
     usingTcpTurn = false;
     resetConnectionControls();
     showAvatarPlaceholder();
@@ -1845,6 +1958,7 @@ async function clearConnections() {
 loadAvatarOptions();
 loadAvatarCreatorConfig();
 resumeActiveAvatarGeneration();
+loadRuntimeConfig().catch(error => console.warn('Failed to load runtime config:', error));
 
 </script>
 </body>

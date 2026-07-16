@@ -99,6 +99,7 @@ class RTCManager:
                 }, ensure_ascii=False),
             )
         params = await request.json()
+        web_search = bool(params.get("web_search", False))
         offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
         # 通过 SessionManager 构建（内部会检查 max_session）
@@ -134,7 +135,11 @@ class RTCManager:
                 if expiry_task:
                     expiry_task.cancel()
                 minicpmo_started = True
-                await self.minicpmo_manager.start_session(sessionid, avatar_session)
+                await self.minicpmo_manager.start_session(
+                    sessionid,
+                    avatar_session,
+                    web_search=web_search,
+                )
             if pc.connectionState in ("failed", "closed"):
                 for task in list(microphone_tasks):
                     task.cancel()

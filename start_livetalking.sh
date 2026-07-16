@@ -2,13 +2,13 @@
 set -euo pipefail
 
 # ==================== 参数区 ====================
-MODEL="musetalk"       # 可选：musetalk / wav2lip
-AVATAR_ID="musetalk_222wave"
-BATCH_SIZE="4"
+# MODEL="musetalk"       # 可选：musetalk / wav2lip
+# AVATAR_ID="musetalk_222wave"
+# BATCH_SIZE="4"
 # ========================================================
-# MODEL="wav2lip"
-# AVATAR_ID="wav2lip256_avatar1"
-# BATCH_SIZE="8"
+MODEL="wav2lip"
+AVATAR_ID="wav2lip256_avatar1"
+BATCH_SIZE="8"
 # ========================================================
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

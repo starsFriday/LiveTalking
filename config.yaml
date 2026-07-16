@@ -35,6 +35,11 @@ minicpmo_barge_in_threshold_db: -34
 minicpmo_barge_in_trigger_ms: 280
 minicpmo_barge_in_cooldown_ms: 1500
 minicpmo_barge_in_start_guard_ms: 400
+assistant_timezone: 'Asia/Shanghai'
+web_search_enabled: true
+gemini_search_model: 'gemini-3.1-flash-lite'
+web_search_max_context_chars: 320
+web_search_timeout_seconds: 12
 
 # -------- Transport ----------------------------------------------------------
 transport: webrtc              # rtcpush / webrtc / rtmp / virtualcam

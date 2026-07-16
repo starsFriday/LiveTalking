@@ -168,7 +168,13 @@ async def admin_config(request):
     try:
         opt = request.app.get("opt")
         if opt:
-            return json_ok(data={"config": vars(opt)})
+            config = dict(vars(opt))
+            minicpmo_manager = request.app.get("minicpmo_manager")
+            config["web_search_available"] = bool(
+                minicpmo_manager and minicpmo_manager.web_search_available
+            )
+            config["server_time_utc_ms"] = int(time.time() * 1000)
+            return json_ok(data={"config": config})
         return json_error("Config not found")
     except Exception as e:
         logger.exception('admin_config exception:')

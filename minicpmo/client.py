@@ -41,6 +41,7 @@ class MiniCPMRealtimeClient:
         self,
         samples_16k: np.ndarray,
         video_frame_base64: Optional[str] = None,
+        force_listen: bool = False,
     ) -> None:
         await asyncio.wait_for(self.ready.wait(), timeout=300)
         if self.websocket is None:
@@ -48,7 +49,7 @@ class MiniCPMRealtimeClient:
         pcm = np.asarray(samples_16k, dtype="<f4").reshape(-1)
         input_payload = {
             "audio": base64.b64encode(pcm.tobytes()).decode("ascii"),
-            "force_listen": False,
+            "force_listen": bool(force_listen),
             "max_slice_nums": 1,
         }
         if video_frame_base64:

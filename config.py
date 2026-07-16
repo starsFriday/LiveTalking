@@ -105,6 +105,16 @@ def parse_args():
                         help="minimum interval between two voice barge-ins")
     parser.add_argument('--minicpmo_barge_in_start_guard_ms', type=int, default=400,
                         help="ignore microphone energy briefly after model speech starts")
+    parser.add_argument('--assistant_timezone', type=str, default='Asia/Shanghai',
+                        help="IANA timezone used by the MiniCPM live clock")
+    parser.add_argument('--web_search_enabled', action=argparse.BooleanOptionalAction, default=True,
+                        help="allow the per-session web search tool for MiniCPM")
+    parser.add_argument('--gemini_search_model', type=str, default='gemini-3.1-flash-lite',
+                        help="Gemini audio model used with Google Search grounding")
+    parser.add_argument('--web_search_max_context_chars', type=int, default=320,
+                        help="maximum web fact characters privately returned to MiniCPM")
+    parser.add_argument('--web_search_timeout_seconds', type=float, default=12.0,
+                        help="hard timeout for Gemini audio search without blocking MiniCPM")
 
     # ─── 传输 ─────────────────────────────────────────────────────────
     parser.add_argument('--transport', type=str, default='webrtc',

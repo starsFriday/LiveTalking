@@ -21,7 +21,8 @@ Joyfox Real-time Digital Human 将 [LiveTalking](https://github.com/lipku/LiveTa
 [MiniCPM-o 4.5](https://huggingface.co/openbmb/MiniCPM-o-4_5) 的端到端全模态全双工能力连接起来。
 
 用户在浏览器中打开摄像头和麦克风后，MiniCPM-o 可以持续理解画面与语音，并直接输出流式语音；LiveTalking
-把模型输出的声音转换成数字人口型和 WebRTC 音视频。整个 MiniCPM 链路不经过额外的 ASR、文本 LLM 或 TTS。
+把模型输出的声音转换成数字人口型和 WebRTC 音视频。默认 MiniCPM 链路不经过额外的 ASR、文本 LLM 或 TTS；仅当
+用户主动打开“联网搜索”时，Gemini 会理解完整语句的意图，并仅对时效问题调用 Google Search，最终回答仍由 MiniCPM 组织和发声。
 
 本仓库还提供图片生成数字人的完整工作流：上传人物图片后，服务调用 Grok 生成多种待机动作视频，再自动使用当前
 运行的 Wav2Lip 或 MuseTalk 模型制作可选择的数字人形象。
@@ -31,6 +32,8 @@ Joyfox Real-time Digital Human 将 [LiveTalking](https://github.com/lipku/LiveTa
 ## 主要功能
 
 - MiniCPM-o 4.5 原生语音到语音全双工对话。
+- 本地实时日期/时钟，通过模型可见画面持续校时，不请求网络。
+- 可选按意图联网搜索；Gemini 3.1 Flash Lite 直接听取完整语句，仅对时效问题调用 Google Search。
 - 浏览器摄像头实时视觉理解，支持模型“看见”用户画面。
 - 模型音频直接驱动 Wav2Lip 或 MuseTalk 口型，不再串联外部 TTS。
 - 数字人音频与视频统一由 LiveTalking WebRTC 输出，避免双播放器造成音画漂移。
@@ -414,7 +417,7 @@ data/avatars/<AVATAR_ID>/
 
 ## 图片自动生成数字人
 
-### 配置 xAI
+### 配置 xAI（仅用于 Grok 图生视频）
 
 复制环境变量模板：
 
@@ -430,6 +433,19 @@ XAI_API_KEY=xai-你的密钥
 ```
 
 修改 `.env` 后需要重启 LiveTalking。不要把 `.env`、密钥或真实用户图片提交到 Git。
+
+### 可选联网搜索
+
+页面“联网搜索”开关默认关闭。开启后，麦克风仍按原路径实时送给 MiniCPM；本地轻量 VAD 只在一句话结束时把该段 16 kHz 语音异步提交给 Gemini。Gemini 在单次 Interactions 请求中理解语音并判断联网意图；天气、新闻、价格等时效问题调用 Google Search，普通聊天不搜索。关闭开关时不调用 Gemini，完全保持原生 MiniCPM 链路，搜索失败或 12 秒超时也不会断开会话。
+
+在项目根目录 `.env` 中配置：
+
+```dotenv
+GEMINI_API_KEY=你的_Gemini_API_Key
+GEMINI_SEARCH_MODEL=gemini-3.1-flash-lite
+```
+
+搜索结果会渲染为一张仅 MiniCPM 可见的“系统联网资料”视觉卡片，不经过第二次 TTS，也不由 Gemini 直接对用户回答。MiniCPM 始终负责上下文、推理、最终回答和发声。资料最多回灌 320 个字符，可通过 `web_search_timeout_seconds` 和 `web_search_max_context_chars` 调整。
 
 ### 三种生成模式
 
@@ -496,6 +512,10 @@ wav2lip_joyfox_点头_20260715_150527
 | `minicpmo_barge_in_trigger_ms` | `280` | 连续人声达到该时长后触发打断 |
 | `minicpmo_barge_in_cooldown_ms` | `1500` | 两次打断之间的冷却时间 |
 | `minicpmo_barge_in_start_guard_ms` | `400` | 模型开始说话后暂时忽略麦克风能量的时长 |
+| `assistant_timezone` | `Asia/Shanghai` | 数字人实时系统时钟使用的 IANA 时区 |
+| `gemini_search_model` | `gemini-3.1-flash-lite` | Gemini 音频理解与 Google Search 模型（可由 `.env` 覆盖） |
+| `web_search_timeout_seconds` | `12` | Gemini 单次音频搜索硬超时，不阻塞 MiniCPM |
+| `web_search_max_context_chars` | `320` | 交给 MiniCPM 的搜索资料最大字符数 |
 | `listenport` | `8010` | Web 页面和 LiveTalking API 端口 |
 | `turn_url` | `turn:127.0.0.1:3478?transport=tcp` | 本地 TCP TURN |
 | `max_session` | `5` | LiveTalking 会话上限 |
